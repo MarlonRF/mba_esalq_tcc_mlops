@@ -1,0 +1,1 @@
+Funções relativas a criação de novas features 

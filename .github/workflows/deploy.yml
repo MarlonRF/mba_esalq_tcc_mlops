@@ -1,0 +1,144 @@
+# Workflow de Deploy Condicional para Google Cloud Platform
+# Este workflow só executa deploy se todos os testes passarem
+
+name: CD - Deploy para GCP
+
+on:
+  push:
+    branches: [ main ]  # Deploy automático só na main
+  workflow_dispatch:  # Permite trigger manual
+    inputs:
+      environment:
+        description: 'Ambiente de deploy (staging/production)'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: conforto-termico-api
+  REGION: us-central1
+  
+jobs:
+  # Job 1: Executar todos os testes antes do deploy
+  pre-deploy-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+      
+    - name: Configurar Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Instalar uv
+      run: python -m pip install --upgrade pip uv
+
+    - name: Instalar dependências com uv
+      run: |
+        uv sync --all-extras --dev
+        
+    - name: Executar suite completa de testes
+      run: |
+        uv run pytest tests/ -v --tb=short \
+          --cov=funcoes --cov=api \
+          --cov-fail-under=20 \
+          -m "not clearml"  # Pular testes que requerem ClearML
+          
+    - name: Verificar sintaxe dos arquivos Python
+      run: |
+        uv run python -m py_compile funcoes/*.py
+        uv run python -m py_compile api/*.py
+        
+  # Job 2: Build e Deploy condicional
+  deploy:
+    runs-on: ubuntu-latest
+    needs: pre-deploy-tests  # Só roda se testes passarem
+    if: success()  # Garante que só deploye se tudo passou
+    
+    steps:
+    - name: Checkout do código  
+      uses: actions/checkout@v4
+      
+    - name: Configurar Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+        
+    - name: Configurar Docker para GCR
+      run: gcloud auth configure-docker
+      
+    - name: Build da imagem Docker
+      run: |
+        docker build -f src/api/Dockerfile -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+        docker build -f src/api/Dockerfile -t gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest .
+        
+    - name: Push da imagem para GCR
+      run: |
+        docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+        docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest
+        
+    - name: Deploy para Cloud Run
+      run: |
+        gcloud run deploy ${{ env.SERVICE_NAME }} \
+          --image gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+          --platform managed \
+          --region ${{ env.REGION }} \
+          --allow-unauthenticated \
+          --set-env-vars="ENVIRONMENT=${{ github.event.inputs.environment || 'production' }}" \
+          --memory=1Gi \
+          --cpu=1 \
+          --min-instances=0 \
+          --max-instances=10
+          
+    - name: Obter URL do serviço deployado
+      id: deploy-url
+      run: |
+        URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+          --platform managed --region ${{ env.REGION }} \
+          --format 'value(status.url)')
+        echo "url=$URL" >> $GITHUB_OUTPUT
+        echo "✅ Deploy concluído: $URL"
+        
+    - name: Teste de saúde pós-deploy
+      run: |
+        URL="${{ steps.deploy-url.outputs.url }}"
+        echo "Testando endpoint de saúde: $URL/"
+        
+        # Aguardar 30 segundos para o serviço ficar disponível
+        sleep 30
+        
+        # Testar endpoint básico
+        response=$(curl -s -o /dev/null -w "%{http_code}" "$URL/")
+        if [ $response -eq 200 ]; then
+          echo "✅ Teste de saúde passou: HTTP $response"
+        else
+          echo "❌ Teste de saúde falhou: HTTP $response"
+          exit 1
+        fi
+        
+    - name: Notificar sucesso
+      if: success()
+      run: |
+        echo "🚀 Deploy realizado com sucesso!"
+        echo "URL: ${{ steps.deploy-url.outputs.url }}"
+        echo "Versão: ${{ github.sha }}"
+        
+    - name: Rollback em caso de falha
+      if: failure()
+      run: |
+        echo "❌ Deploy falhou. Iniciando rollback..."
+        # Aqui você pode implementar lógica de rollback
+        # Por exemplo, deployar a versão anterior
+        gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+          --to-revisions=LATEST=100 \
+          --platform managed \
+          --region ${{ env.REGION }}
+        echo "🔄 Rollback concluído"

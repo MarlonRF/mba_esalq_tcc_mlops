@@ -1,0 +1,1 @@
+Configurações personalizadas do projeto específico: conjunto de dados, dicionários de nomes de variáveis, etc.

@@ -1,0 +1,394 @@
+# ============================================================================
+# GITIGNORE PARA PROJETO MLOPS - CONFORTO TÉRMICO
+# ============================================================================
+
+# ============================================================================ 
+# PYTHON & APLICAÇÃO
+# ============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Scrapy stuff
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ============================================================================
+# ML/DATA SCIENCE ESPECÍFICO
+# ============================================================================
+
+# Modelos treinados (exceto o modelo da API)
+# *.pkl  # Comentado - o api.pkl é necessário
+*.joblib
+*.h5
+*.hdf5
+*.onnx
+*.pb
+*.pth
+*.pt
+*.model
+*.bin
+
+# Datasets e dados
+notebooks/modelos
+data/
+dados/raw/
+dados/processed/
+dados/external/
+*.csv
+*.parquet
+*.feather
+*.xlsx
+*.xls
+*.json
+*.jsonl
+*.ndjson
+*.txt
+*.tsv
+
+# Exceções para dados essenciais do projeto
+!dados/2025.05.14_thermal_confort_santa_maria_brazil_.csv
+!credenciais.json.example
+!requirements*.txt
+!*.md
+
+# Logs e métricas
+logs/
+*.log
+tensorboard_logs/
+mlruns/
+runs/
+experiments/
+artifacts/
+
+# Checkpoints e estados
+checkpoints/
+*.ckpt
+*.pth.tar
+*.state_dict
+
+# Cache de preprocessing
+.cache/
+cache/
+preprocessed/
+
+# ============================================================================
+# CLEARML / MLOPS
+# ============================================================================
+
+# ClearML
+clearml.conf
+trains.conf
+.clearml/
+
+# MLflow
+mlruns/
+.mlflow/
+
+# Weights & Biases
+wandb/
+
+# DVC
+.dvc/
+.dvcignore
+
+# Hydra
+outputs/
+multirun/
+.hydra/
+
+# ============================================================================
+# DOCKER & CONTAINERS
+# ============================================================================
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# ============================================================================
+# CLOUD & CREDENTIALS
+# ============================================================================
+
+# Credenciais (CRÍTICO)
+credenciais.json
+credentials.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+.gcp/
+.aws/
+.azure/
+
+# Environment específico
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.test
+
+# ============================================================================
+# IDE & EDITORES
+# ============================================================================
+
+# VS Code
+.vscode/
+!.vscode/settings.json.example
+!.vscode/launch.json.example
+!.vscode/extensions.json.example
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================================================
+# SISTEMA OPERACIONAL
+# ============================================================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================================================
+# TEMPORÁRIOS & OUTROS
+# ============================================================================
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+*.swp
+*.swo
+
+# Compressed files
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Node.js (caso use frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================================================
+# PROJETO ESPECÍFICO
+# ============================================================================
+
+# Logs específicos do projeto
+logs.log
+*.log
+
+# Modelos salvos
+modelos/*.pkl
+!modelos/.gitkeep
+
+# API artifacts - permite api.pkl na raiz
+# api/*.pkl  # Comentado - api.pkl é necessário
+!api/.gitkeep
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Performance profiling
+*.prof
+*.lprof

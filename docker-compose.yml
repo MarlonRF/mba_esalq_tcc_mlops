@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/api/Dockerfile
+    image: conforto-api:local
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    # Descomente se precisar montar modelo local em dev
+    # volumes:
+    #   - ./src/api:/app
+    restart: unless-stopped
