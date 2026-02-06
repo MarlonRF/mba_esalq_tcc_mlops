@@ -3,7 +3,7 @@ Testes unitários para aplicar_dummy.py
 """
 import pytest
 import pandas as pd
-from src.features.codificacao.aplicar_dummy import aplicar_dummy_encoding
+from src.features.codificacao.aplicar_dummy import aplicar_dummy
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def df_categorico():
 
 def test_aplicar_dummy_basico(df_categorico):
     """Testa aplicação básica de dummy encoding."""
-    resultado = aplicar_dummy_encoding(
+    resultado = aplicar_dummy(
         df=df_categorico,
         colunas=['cor']
     )
@@ -30,7 +30,7 @@ def test_aplicar_dummy_basico(df_categorico):
 
 def test_aplicar_dummy_multiplas_colunas(df_categorico):
     """Testa dummy encoding em múltiplas colunas."""
-    resultado = aplicar_dummy_encoding(
+    resultado = aplicar_dummy(
         df=df_categorico,
         colunas=['cor', 'tamanho']
     )
@@ -40,11 +40,11 @@ def test_aplicar_dummy_multiplas_colunas(df_categorico):
 
 
 def test_aplicar_dummy_drop_first(df_categorico):
-    """Testa opção drop_first=True."""
-    resultado = aplicar_dummy_encoding(
+    """Testa opção dropar_primeiro=True."""
+    resultado = aplicar_dummy(
         df=df_categorico,
         colunas=['cor'],
-        drop_first=True
+        dropar_primeiro=True
     )
     
     # Com drop_first, deve ter n-1 colunas por categoria
@@ -54,7 +54,7 @@ def test_aplicar_dummy_drop_first(df_categorico):
 
 def test_aplicar_dummy_valores_binarios(df_categorico):
     """Testa que valores das dummies são 0 ou 1."""
-    resultado = aplicar_dummy_encoding(
+    resultado = aplicar_dummy(
         df=df_categorico,
         colunas=['cor']
     )

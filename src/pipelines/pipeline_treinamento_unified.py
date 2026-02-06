@@ -234,6 +234,7 @@ def treinar_rapido(
     tipo_problema: TipoProblema,
     modelo: str = "auto",
     salvar: bool = False,
+    params_setup: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Any, Any]:
     """
     Atalho para treinamento rápido sem otimização.
@@ -247,6 +248,7 @@ def treinar_rapido(
         tipo_problema: 'classificacao' ou 'regressao'
         modelo: ID do modelo ('rf', 'lr', 'dt', etc) ou 'auto' para melhor
         salvar: Se deve salvar o modelo
+        params_setup: Parâmetros para setup do PyCaret (opcional)
         
     Returns:
         Tupla (experimento, modelo_treinado)
@@ -261,11 +263,15 @@ def treinar_rapido(
     tipo_display = "CLASSIFICAÇÃO" if tipo_problema == "classificacao" else "REGRESSÃO"
     logger.info(f"Treinamento rápido de {tipo_display} - modelo: {modelo}")
     
-    params_rapidos = {
-        "fold": 2,
-        "remove_outliers": False,
-        "verbose": False,
-    }
+    # Usa params_setup fornecido ou defaults rápidos
+    if params_setup is None:
+        params_rapidos = {
+            "fold": 2,
+            "remove_outliers": False,
+            "verbose": False,
+        }
+    else:
+        params_rapidos = params_setup
     
     resultado = treinar_pipeline_completo(
         dados=dados,

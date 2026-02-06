@@ -15,7 +15,7 @@ def imc_classe(v: float) -> str:
     if v < 30:
         return "Sobrepeso"
     if v < 35:
-        return "Obesidade Grau I"
+        return "Obesidade"
     if v < 40:
-        return "Obesidade Grau II"
-    return "Obesidade Grau III"
+        return "Obesidade"
+    return "Obesidade"

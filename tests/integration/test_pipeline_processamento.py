@@ -72,7 +72,7 @@ class TestPipelineProcessamento:
             "peso" in dados_conforto_termico_basico.columns
             and "altura" in dados_conforto_termico_basico.columns
         ):
-            assert "IMC" in colunas
+            assert "imc" in colunas
 
         # Heat index deve ser criado se tmedia e ur estiverem presentes
         if (
@@ -212,7 +212,7 @@ class TestPipelineProcessamento:
 
         # Verifica se features derivadas foram criadas
         if cfg.criar_features_derivadas and "imc" in cfg.tipos_features_derivadas:
-            assert "IMC" in df_processado.columns, "Feature IMC não encontrada"
+            assert "imc" in df_processado.columns, "Feature imc não encontrada"
 
         # Verifica se normalização foi aplicada
         if cfg.aplicar_normalizacao:

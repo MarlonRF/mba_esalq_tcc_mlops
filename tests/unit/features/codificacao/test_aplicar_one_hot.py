@@ -11,10 +11,10 @@ class TestAplicarOneHot:
 
     def test_one_hot_basico(self):
         """Testa one-hot encoding básico"""
-        from src.processamento.codificacao.aplicar_one_hot import aplicar_one_hot
+        from src.features.codificacao.aplicar_dummy import aplicar_dummy
         
         df = pd.DataFrame({"cor": ["vermelho", "azul", "verde", "vermelho"]})
-        df_resultado = aplicar_one_hot(df, ["cor"])
+        df_resultado = aplicar_dummy(df, ["cor"])
         
         # Verifica que colunas one-hot foram criadas
         assert "cor_vermelho" in df_resultado.columns or "cor_azul" in df_resultado.columns
@@ -26,12 +26,12 @@ class TestAplicarOneHot:
             
     def test_drop_first(self):
         """Testa parâmetro drop_first para evitar colinearidade"""
-        from src.processamento.codificacao.aplicar_one_hot import aplicar_one_hot
+        from src.features.codificacao.aplicar_dummy import aplicar_dummy
         
         df = pd.DataFrame({"cat": ["A", "B", "C"]})
         
-        df_sem_drop = aplicar_one_hot(df, ["cat"], drop_first=False)
-        df_com_drop = aplicar_one_hot(df, ["cat"], drop_first=True)
+        df_sem_drop = aplicar_dummy(df, ["cat"], drop_first=False)
+        df_com_drop = aplicar_dummy(df, ["cat"], drop_first=True)
         
         colunas_sem_drop = [c for c in df_sem_drop.columns if c.startswith("cat_")]
         colunas_com_drop = [c for c in df_com_drop.columns if c.startswith("cat_")]
@@ -40,9 +40,9 @@ class TestAplicarOneHot:
         
     def test_colunas_vazias(self):
         """Testa comportamento com lista vazia de colunas"""
-        from src.processamento.codificacao.aplicar_one_hot import aplicar_one_hot
+        from src.features.codificacao.aplicar_dummy import aplicar_dummy
         
         df = pd.DataFrame({"A": [1, 2]})
-        df_resultado = aplicar_one_hot(df, [])
+        df_resultado = aplicar_dummy(df, [])
         
         pd.testing.assert_frame_equal(df, df_resultado)

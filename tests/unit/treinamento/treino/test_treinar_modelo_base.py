@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 
-from src.treinamento.treinar_modelo_base import treinar_modelo_base
+from src.treinamento.treino.treinar_modelo_base import treinar_modelo_base
 
 
 class TestTreinarModeloBase:

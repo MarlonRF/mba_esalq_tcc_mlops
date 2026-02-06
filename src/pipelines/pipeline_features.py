@@ -108,6 +108,16 @@ def executar_pipeline_features(
         colunas_norm = [c for c in df_feat.columns if c.endswith(sufixo_normalizacao)]
         artefatos['colunas_normalizadas'] = colunas_norm
     
+    # Adiciona estrutura aninhada para testes de integração que esperam essas chaves
+    artefatos['artefatos_codificacao'] = {
+        k: v for k, v in artefatos.items() 
+        if k in ['mapeamentos_codificacao', 'colunas_onehot']
+    }
+    artefatos['artefatos_normalizacao'] = {
+        k: v for k, v in artefatos.items() 
+        if k in ['colunas_normalizadas']
+    }
+    
     print(f"✅ Pipeline FEATURES concluído! Shape final: {df_feat.shape}")
     print(f"   Novas colunas criadas: {df_feat.shape[1] - df.shape[1]}")
     

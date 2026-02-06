@@ -57,6 +57,10 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Relatórios de testes (gerados automaticamente)
+relatorios/
+!relatorios/.gitkeep
+
 # Translations
 *.mo
 *.pot

@@ -7,8 +7,8 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-from src.treinamento.avaliar_modelo import avaliar_modelo
-from src.treinamento.treinar_modelo_base import treinar_modelo_base
+from src.treinamento.avaliacao.avaliar_modelo import avaliar_modelo
+from src.treinamento.treino.treinar_modelo_base import treinar_modelo_base
 
 
 class TestAvaliarModelo:

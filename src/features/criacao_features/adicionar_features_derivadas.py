@@ -21,9 +21,9 @@ def adicionar_features_derivadas(
 
     # IMC e classe
     if "imc" in tipos and {"peso", "altura"}.issubset(df.columns):
-        df["IMC"] = df.apply(lambda r: calcular_valor_imc(r.get("peso"), r.get("altura")), axis=1)
-    if "imc_classe" in tipos and "IMC" in df.columns:
-        df["IMC_classe"] = df["IMC"].apply(imc_classe)
+        df["imc"] = df.apply(lambda r: calcular_valor_imc(r.get("peso"), r.get("altura")), axis=1)
+    if "imc_classe" in tipos and "imc" in df.columns:
+        df["imc_classe"] = df["imc"].apply(imc_classe)
 
     # Heat index
     if "heat_index" in tipos and {"tmedia", "ur"}.issubset(df.columns):

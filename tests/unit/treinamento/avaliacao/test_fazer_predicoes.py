@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
-from src.treinamento.fazer_predicoes import fazer_predicoes
-from src.treinamento.treinar_modelo_base import treinar_modelo_base
+from src.treinamento.avaliacao.fazer_predicoes import fazer_predicoes
+from src.treinamento.treino.treinar_modelo_base import treinar_modelo_base
 
 
 class TestFazerPredicoes:

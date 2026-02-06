@@ -2,7 +2,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from src.processamento.normalizacao.normalizar import normalizar
+from src.features.normalizacao.normalizar import normalizar
 
 
 def test_normalizar_sem_agrupamento():

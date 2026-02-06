@@ -11,7 +11,7 @@ class TestCodificarLabel:
 
     def test_codificacao_basica(self):
         """Testa codificação básica de categorias"""
-        from src.processamento.codificacao.codificar_label import codificar_label
+        from src.features.codificacao.codificar_label import codificar_label
         
         serie = pd.Series(["maçã", "banana", "maçã", "laranja"])
         codigos, mapeamento = codificar_label(serie)
@@ -28,7 +28,7 @@ class TestCodificarLabel:
         
     def test_valores_faltantes(self):
         """Testa tratamento de valores faltantes"""
-        from src.processamento.codificacao.codificar_label import codificar_label
+        from src.features.codificacao.codificar_label import codificar_label
         
         serie = pd.Series(["maçã", None, "banana", pd.NA])
         codigos, mapeamento = codificar_label(serie)
@@ -39,7 +39,7 @@ class TestCodificarLabel:
         
     def test_mapeamento_reverso(self):
         """Testa se o mapeamento permite recuperar categorias originais"""
-        from src.processamento.codificacao.codificar_label import codificar_label
+        from src.features.codificacao.codificar_label import codificar_label
         
         serie = pd.Series(["A", "B", "C", "A"])
         codigos, mapeamento = codificar_label(serie)

@@ -11,7 +11,7 @@ class TestAdicionarFeaturesDerivadas:
 
     def test_adicionar_imc(self):
         """Testa adição de feature IMC"""
-        from src.processamento.derivadas.adicionar_features_derivadas import adicionar_features_derivadas
+        from src.features.criacao_features.adicionar_features_derivadas import adicionar_features_derivadas
         
         df = pd.DataFrame({
             "peso": [70, 80],
@@ -20,12 +20,12 @@ class TestAdicionarFeaturesDerivadas:
         
         df_resultado = adicionar_features_derivadas(df, ["imc"])
         
-        assert "IMC" in df_resultado.columns
-        assert df_resultado["IMC"].notna().all()
+        assert "imc" in df_resultado.columns
+        assert df_resultado["imc"].notna().all()
         
     def test_adicionar_heat_index(self):
         """Testa adição de heat index"""
-        from src.processamento.derivadas.adicionar_features_derivadas import adicionar_features_derivadas
+        from src.features.criacao_features.adicionar_features_derivadas import adicionar_features_derivadas
         
         df = pd.DataFrame({
             "tmedia": [25, 30],
@@ -38,7 +38,7 @@ class TestAdicionarFeaturesDerivadas:
         
     def test_multiplas_features(self):
         """Testa adição de múltiplas features"""
-        from src.processamento.derivadas.adicionar_features_derivadas import adicionar_features_derivadas
+        from src.features.criacao_features.adicionar_features_derivadas import adicionar_features_derivadas
         
         df = pd.DataFrame({
             "peso": [70],
@@ -51,14 +51,14 @@ class TestAdicionarFeaturesDerivadas:
             df, ["imc", "heat_index", "dew_point", "t*u"]
         )
         
-        assert "IMC" in df_resultado.columns
+        assert "imc" in df_resultado.columns
         assert "heat_index" in df_resultado.columns
         assert "dew_point" in df_resultado.columns
         assert "t_u" in df_resultado.columns
         
     def test_lista_vazia(self):
         """Testa que lista vazia não modifica DataFrame"""
-        from src.processamento.derivadas.adicionar_features_derivadas import adicionar_features_derivadas
+        from src.features.criacao_features.adicionar_features_derivadas import adicionar_features_derivadas
         
         df = pd.DataFrame({"A": [1, 2]})
         df_resultado = adicionar_features_derivadas(df, [])

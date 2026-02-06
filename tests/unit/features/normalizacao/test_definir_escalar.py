@@ -1,7 +1,7 @@
 """Testes para pick_scaler."""
 import pytest
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
-from src.processamento.normalizacao.pick_scaler import pick_scaler
+from src.features.normalizacao.definir_escalar import pick_scaler
 
 
 def test_pick_scaler_standard():

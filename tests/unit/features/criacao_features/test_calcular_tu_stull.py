@@ -2,7 +2,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from src.processamento.derivadas.calcular_tu_stull import calcular_tu_stull
+from src.features.criacao_features.calcular_tu_stull import calcular_tu_stull
 
 
 def test_calcular_tu_stull():
