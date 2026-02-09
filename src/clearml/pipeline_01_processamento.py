@@ -94,8 +94,10 @@ def pipeline_processamento(caminho_csv: str, project_name: str = None, offline_m
         print(f"\n[1] Carregando arquivo: {caminho}")
         df_raw = load_dataframe(str(caminho))
         print(f"    Shape: {df_raw.shape}")
-        logger.report_single_value("dados_entrada_linhas", df_raw.shape[0])
-        logger.report_single_value("dados_entrada_colunas", df_raw.shape[1])
+        
+        if logger:
+            logger.report_single_value("dados_entrada_linhas", df_raw.shape[0])
+            logger.report_single_value("dados_entrada_colunas", df_raw.shape[1])
         
         # Processar
         print(f"\n[2] Executando processamento...")
@@ -103,54 +105,73 @@ def pipeline_processamento(caminho_csv: str, project_name: str = None, offline_m
         print(f"    Shape após processamento: {df_processado.shape}")
         print(f"    NAs removidos: {df_raw.isna().sum().sum() - df_processado.isna().sum().sum()}")
         
-        logger.report_single_value("dados_saida_linhas", df_processado.shape[0])
-        logger.report_single_value("dados_saida_colunas", df_processado.shape[1])
-        logger.report_single_value("nas_restantes", df_processado.isna().sum().sum())
+        if logger:
+            logger.report_single_value("dados_saida_linhas", df_processado.shape[0])
+            logger.report_single_value("dados_saida_colunas", df_processado.shape[1])
+            logger.report_single_value("nas_restantes", df_processado.isna().sum().sum())
         
-        # Criar Dataset
-        print(f"\n[3] Criando Dataset ClearML...")
-        dataset = Dataset.create(
-            dataset_name="dados_processados",
-            dataset_project=proj
-        )
-        
-        temp_dir = Path("./temp_clearml")
-        temp_dir.mkdir(exist_ok=True)
-        temp_file = temp_dir / "dados_processados.csv"
-        df_processado.to_csv(temp_file, index=False)
-        
-        dataset.add_files(str(temp_file))
-        dataset.upload()
-        dataset.finalize()
-        
-        print(f"    Dataset ID: {dataset.id}")
-        
-        # Upload sample como artefato
-        task.upload_artifact("dados_processados_sample", df_processado.head(100))
-        
-        # Limpar
-        import shutil
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        # Criar Dataset (só se não estiver em modo offline)
+        dataset_id = None
+        if not offline_mode:
+            print(f"\n[3] Criando Dataset ClearML...")
+            try:
+                dataset = Dataset.create(
+                    dataset_name="dados_processados",
+                    dataset_project=proj
+                )
+                
+                temp_dir = Path("./temp_clearml")
+                temp_dir.mkdir(exist_ok=True)
+                temp_file = temp_dir / "dados_processados.csv"
+                df_processado.to_csv(temp_file, index=False)
+                
+                dataset.add_files(str(temp_file))
+                dataset.upload()
+                dataset.finalize()
+                
+                dataset_id = dataset.id
+                print(f"    Dataset ID: {dataset_id}")
+                
+                # Upload sample como artefato
+                if task:
+                    task.upload_artifact("dados_processados_sample", df_processado.head(100))
+                
+                # Limpar
+                import shutil
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            except Exception as e:
+                print(f"    ⚠ Erro ao criar dataset: {e}")
+                print(f"    Continuando sem dataset...")
+        else:
+            print(f"\n[3] Modo offline - pulando criação de dataset ClearML")
         
         resultado = {
-            "dataset_processado_id": dataset.id,
+            "dataset_processado_id": dataset_id,
             "shape": df_processado.shape,
-            "nas_removidos": int(df_raw.isna().sum().sum() - df_processado.isna().sum().sum())
+            "nas_removidos": int(df_raw.isna().sum().sum() - df_processado.isna().sum().sum()),
+            "df_processado": df_processado,  # Retornar dataframe para uso direto
+            "offline_mode": offline_mode
         }
         
         print("\n" + "="*80)
         print("PIPELINE 1 CONCLUÍDO!")
         print("="*80)
-        print(f"Dataset ID: {dataset.id}")
+        if dataset_id:
+            print(f"Dataset ID: {dataset_id}")
+        else:
+            print("Dataset: N/A (modo offline ou erro)")
         print(f"Shape: {df_processado.shape}")
+        print(f"Modo: {'OFFLINE' if offline_mode else 'ONLINE'}")
         print("="*80)
         
-        task.close()
+        if task:
+            task.close()
         return resultado
         
     except Exception as e:
-        task.mark_failed(status_message=str(e))
-        task.close()
+        if task:
+            task.mark_failed(status_message=str(e))
+            task.close()
         raise
 
 
