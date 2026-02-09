@@ -5,7 +5,7 @@ import os
 from typing import Dict
 from clearml import OutputModel, Task
 from pycaret.classification import ClassificationExperiment
-from ..treinamento.extrair_info_modelo import extrair_info_modelo
+from src.treinamento.utils import extrair_info_modelo
 
 
 def registrar_modelo_clearml(

@@ -55,7 +55,7 @@ def executar_pipeline_notebook():
         
         # Célula 10: Pipeline de treinamento (EXATAMENTE como no notebook)
         print(">> Pipeline treinamento (célula 10)...")
-        from pipelines.pipeline_treinamento_antigo import pipeline_treinamento
+        from legacy.pipeline_treinamento_antigo import pipeline_treinamento
         
         coluna_alvo = "sensacao_termica"
         atributos = ["sensacao_termica", "idade_anos", "peso_kg", "altura_cm", 

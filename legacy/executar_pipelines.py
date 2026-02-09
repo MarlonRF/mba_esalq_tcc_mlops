@@ -43,7 +43,7 @@ def executar_pipelines_completos():
         print("� Importando módulos...")
         from utils.io.io_local import load_dataframe
         from utils.processamento.pipeline_processamento import pipeline_processamento
-        from pipelines.pipeline_treinamento_antigo import pipeline_treinamento
+        from legacy.pipeline_treinamento_antigo import pipeline_treinamento
         from clearml.automation import PipelineDecorator
         
         # Configura ClearML para execução local (evita conexão remota)
