@@ -37,7 +37,7 @@ class TestCalcularIMC:
         """Testa que IMC aumenta com o peso"""
         from src.features.criacao_features.calcular_valor_imc import calcular_valor_imc
         
-        imc1 = calcular_imc(60, 170)
-        imc2 = calcular_imc(80, 170)
+        imc1 = calcular_valor_imc(60, 170)
+        imc2 = calcular_valor_imc(80, 170)
         
         assert imc2 > imc1

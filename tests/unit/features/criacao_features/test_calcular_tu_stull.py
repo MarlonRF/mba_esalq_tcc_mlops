@@ -7,13 +7,11 @@ from src.features.criacao_features.calcular_tu_stull import calcular_tu_stull
 
 def test_calcular_tu_stull():
     """Testa cálculo da temperatura x umidade (Stull)."""
-    df = pd.DataFrame({
-        'tmedia': [25.0, 30.0],
-        'ur': [60.0, 70.0]
-    })
+    result = calcular_tu_stull(25.0, 60.0)
     
-    result = calcular_tu_stull(df)
-    
-    assert 't*u' in result.columns
-    assert not result['t*u'].isna().any()
-    assert result['t*u'].dtype == np.float64
+    # A função retorna um float, não um DataFrame
+    assert isinstance(result, (int, float, np.floating))
+    assert not np.isnan(result)
+    # Valor esperado aproximado para T=25°C e UR=60%
+    assert 10.0 < result < 25.0
+

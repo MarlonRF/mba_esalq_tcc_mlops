@@ -37,14 +37,14 @@ class TestConverterColunasTemporais:
         df = pd.DataFrame({
             'data': ['2024-01-15', '2023-06-20']
         })
-        result = converter_colunas_temporais(df, colunas=['data'])
+        result = converter_colunas_temporais(df, coluna_data='data')
         assert pd.api.types.is_datetime64_any_dtype(result['data'])
     
     def test_mantém_dados_validos(self):
         df = pd.DataFrame({
             'data': ['2024-01-15', '2024-06-20']
         })
-        result = converter_colunas_temporais(df, colunas=['data'])
+        result = converter_colunas_temporais(df, coluna_data='data')
         assert len(result) == len(df)
 
 

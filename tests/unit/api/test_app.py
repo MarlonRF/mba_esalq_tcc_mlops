@@ -5,33 +5,20 @@ Testa endpoints, validação de dados e integração com o modelo.
 """
 
 import json
+import os
 
 import pytest
 from fastapi.testclient import TestClient
 
 
+@pytest.mark.skipif(not os.path.exists("api.pkl"), reason="Modelo api.pkl não encontrado - necessário para testes de API")
 class TestAPIConfortoTermico:
     """Testes para API de predição de conforto térmico"""
 
     @pytest.fixture(scope="class")
     def client(self):
         """Fixture para cliente de teste da API"""
-        # Garantir que existe um modelo para teste
-        import os
-        import sys
-        if not os.path.exists("api.pkl"):
-            # Se não existir, cria modelo simples
-            import subprocess
-            # Usar caminho completo do Python para segurança
-            python_executable = sys.executable
-            try:
-                subprocess.run([python_executable, "criar_modelo_teste.py"], 
-                             check=True, capture_output=True, text=True, timeout=60)
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
-                print(f"Erro ao criar modelo de teste: {e}")
-                # Continua sem modelo para teste básico da API
-        
-        from api.app import app
+        from src.api.app import app
         return TestClient(app)
 
     @pytest.mark.api
