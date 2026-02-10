@@ -16,12 +16,13 @@ def codificar_label(serie: pd.Series) -> Tuple[pd.Series, Dict[int, str]]:
         Tupla (serie_codificada, mapeamento_inverso)
         onde mapeamento_inverso é {codigo: valor_original}
     """
-    # Criar códigos únicos
-    valores_unicos = serie.dropna().unique()
-    mapeamento = {val: idx for idx, val in enumerate(valores_unicos)}
-    mapeamento_inverso = {idx: val for val, idx in mapeamento.items()}
-    
-    # Aplicar mapeamento
-    serie_codificada = serie.map(mapeamento)
-    
+    serie_limpa = serie.astype("string").fillna("__faltante__")
+
+    # Mantém a ordem de aparição das categorias para mapeamento estável.
+    valores_unicos = serie_limpa.unique().tolist()
+    mapeamento = {valor: indice for indice, valor in enumerate(valores_unicos)}
+    mapeamento_inverso = {indice: str(valor) for valor, indice in mapeamento.items()}
+
+    serie_codificada = serie_limpa.map(mapeamento).astype("Int64")
+
     return serie_codificada, mapeamento_inverso

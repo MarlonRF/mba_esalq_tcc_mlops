@@ -19,6 +19,6 @@ def aplicar_codificacao_rotulos(
     for col in colunas:
         if col in df.columns:
             codigos, mapa = codificar_label(df[col])
-            df[f"{col}{sufixo}"] = codigos
+            df[f"{col}{sufixo}"] = codigos.astype("int64")
             mapa_rotulos[col] = mapa
     return df, mapa_rotulos

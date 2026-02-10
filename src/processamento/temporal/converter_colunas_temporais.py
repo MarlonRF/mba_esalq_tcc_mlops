@@ -10,9 +10,11 @@ def converter_colunas_temporais(df: pd.DataFrame, coluna_data: str = "data", col
     if coluna_data in df.columns:
         df[coluna_data] = pd.to_datetime(df[coluna_data], errors="coerce", dayfirst=True)
     if coluna_hora in df.columns:
-        df[coluna_hora] = pd.to_datetime(
-            df[coluna_hora], errors="coerce", format="%H:%M:%S"
-        ).dt.time.fillna(
-            pd.to_datetime(df[coluna_hora], errors="coerce", format="%H:%M").dt.time
-        )
+        hora_convertida = pd.to_datetime(df[coluna_hora], errors="coerce", format="%H:%M:%S")
+        faltantes = hora_convertida.isna()
+        if faltantes.any():
+            hora_convertida.loc[faltantes] = pd.to_datetime(
+                df.loc[faltantes, coluna_hora], errors="coerce", format="%H:%M"
+            )
+        df[coluna_hora] = hora_convertida
     return df

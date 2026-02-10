@@ -2,7 +2,7 @@
 Pipeline UNIFICADO de treinamento: setup → compare → tune → finalize → save.
 Suporta tanto CLASSIFICAÇÃO quanto REGRESSÃO através de um único pipeline configurável.
 """
-from typing import Any, Dict, List, Optional, Tuple, Literal
+from typing import Any, Dict, List, Optional, Literal
 import pandas as pd
 
 from config.logger_config import logger
@@ -123,7 +123,13 @@ def treinar_pipeline_completo(
     logger.info(f"Iniciando pipeline completo de treinamento de {tipo_display}")
     logger.info("="*60)
     
-    resultado = {"tipo_problema": tipo_problema}
+    resultado = {
+        "tipo_problema": tipo_problema,
+        "modelo_otimizado": None,
+        "metricas_otimizacao": None,
+        "modelo_finalizado": None,
+        "caminho_modelo": None,
+    }
     
     # ETAPA 1: Setup do experimento
     logger.info(f"ETAPA 1: Configurando experimento PyCaret ({tipo_display})...")
@@ -150,10 +156,14 @@ def treinar_pipeline_completo(
     resultado["tabela_comparacao"] = tabela_comparacao
     
     # Classifica modelos por múltiplas métricas
-    tabela_classificada = classificar_metricas(
-        tabela_comparacao,
-        metricas
-    )
+    metricas_disponiveis = [m for m in metricas if m in tabela_comparacao.columns]
+    if metricas_disponiveis:
+        tabela_classificada = classificar_metricas(
+            tabela_comparacao,
+            metricas_disponiveis
+        )
+    else:
+        tabela_classificada = tabela_comparacao.copy()
     resultado["tabela_classificada"] = tabela_classificada
     
     logger.info(f"✓ {len(modelos_base)} modelo(s) selecionado(s)")
@@ -235,7 +245,7 @@ def treinar_rapido(
     modelo: str = "auto",
     salvar: bool = False,
     params_setup: Optional[Dict[str, Any]] = None,
-) -> Tuple[Any, Any]:
+) -> Dict[str, Any]:
     """
     Atalho para treinamento rápido sem otimização.
     
@@ -251,7 +261,7 @@ def treinar_rapido(
         params_setup: Parâmetros para setup do PyCaret (opcional)
         
     Returns:
-        Tupla (experimento, modelo_treinado)
+        Dicionário de resultado simplificado do pipeline de treino
         
     Examples:
         >>> # Treina Random Forest de classificação rapidamente
@@ -285,7 +295,7 @@ def treinar_rapido(
         salvar_modelo_final=salvar,
     )
     
-    return resultado["experimento"], resultado["melhor_modelo"]
+    return resultado
 
 
 __all__ = [

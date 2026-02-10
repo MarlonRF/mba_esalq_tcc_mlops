@@ -98,7 +98,7 @@ def executar_pipeline_features(
     # ETAPA 3: Normalização
     if aplicar_normalizacao:
         print(f"  3️⃣ Aplicando normalização ({metodo_normalizacao})...")
-        df_feat = normalizar(
+        df_feat, scalers_normalizacao = normalizar(
             df_feat,
             colunas=colunas_normalizar,
             metodo=metodo_normalizacao,
@@ -107,6 +107,7 @@ def executar_pipeline_features(
         )
         colunas_norm = [c for c in df_feat.columns if c.endswith(sufixo_normalizacao)]
         artefatos['colunas_normalizadas'] = colunas_norm
+        artefatos['scalers_normalizacao'] = scalers_normalizacao
     
     # Adiciona estrutura aninhada para testes de integração que esperam essas chaves
     artefatos['artefatos_codificacao'] = {

@@ -25,10 +25,12 @@ def extrair_estimador(modelo_pipeline: Any) -> Any:
         >>> estimador_sklearn.predict_proba(X_test)
     """
     # Em PyCaret o estimador costuma estar em 'trained_model';
-    # se não, pega o último passo do pipeline
+    # se não, pega o último passo do pipeline.
     steps = getattr(modelo_pipeline, "named_steps", None)
     if steps:
         est = steps.get("trained_model", list(steps.values())[-1])
+    elif hasattr(modelo_pipeline, "estimator") and not callable(getattr(modelo_pipeline, "fit", None)):
+        est = getattr(modelo_pipeline, "estimator")
     else:
         est = modelo_pipeline
     return est

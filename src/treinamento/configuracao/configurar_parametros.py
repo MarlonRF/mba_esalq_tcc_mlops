@@ -1,12 +1,12 @@
 """
 Helper para criar e validar dicionários de configuração para experimentos PyCaret.
 """
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from config.config_gerais import PARAMS_PADRAO
 
 
 def configurar_parametros(
-    fold: int = 5,
+    fold: Union[int, Dict[str, Any]] = 5,
     session_id: int = 42,
     normalize: bool = True,
     remove_outliers: bool = True,
@@ -66,6 +66,14 @@ def configurar_parametros(
         ...     log_plots=True
         ... )
     """
+    # Compatibilidade retroativa: primeiro argumento pode ser um dicionário
+    # com parâmetros customizados.
+    if isinstance(fold, dict):
+        params = PARAMS_PADRAO.copy()
+        params.update(fold)
+        params.update(kwargs)
+        return params
+
     # Começa com parâmetros padrão
     params = PARAMS_PADRAO.copy()
     

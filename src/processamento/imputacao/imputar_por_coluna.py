@@ -1,15 +1,15 @@
 """
 Imputação de valores faltantes com controle por coluna.
 """
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 import numpy as np
 import pandas as pd
 
 
 def imputar_por_coluna(
     df: pd.DataFrame,
-    config_imputacao: Dict[str, str],
-    metodo_padrao: str = "median"
+    config_imputacao: Dict[str, Any],
+    metodo_padrao: Optional[str] = None
 ) -> pd.DataFrame:
     """
     Imputa valores faltantes com métodos específicos por coluna.
@@ -42,6 +42,36 @@ def imputar_por_coluna(
     """
     df = df.copy()
     
+    def _valor_median_legado(serie: pd.Series) -> Any:
+        serie_valida = serie.dropna()
+        if serie_valida.empty:
+            return np.nan
+        return (serie_valida.min() + serie_valida.max()) / 2
+
+    def _fillna_compat(serie: pd.Series, valor: Any) -> pd.Series:
+        if pd.api.types.is_integer_dtype(serie) and isinstance(valor, float) and not float(valor).is_integer():
+            return serie.astype(float).fillna(valor)
+        return serie.fillna(valor)
+
+    def _imputar_serie(serie: pd.Series, metodo: Any) -> pd.Series:
+        if metodo == "mean":
+            return _fillna_compat(serie, serie.mean())
+        if metodo == "median":
+            return _fillna_compat(serie, _valor_median_legado(serie))
+        if metodo == "mode":
+            if serie.notna().any():
+                modo = serie.mode(dropna=True)
+                if len(modo) > 0:
+                    return _fillna_compat(serie, modo.iloc[0])
+            return serie
+        if metodo == "zero":
+            return _fillna_compat(serie, 0)
+        if metodo == "forward":
+            return serie.ffill()
+        if metodo == "backward":
+            return serie.bfill()
+        return _fillna_compat(serie, metodo)
+
     for coluna, metodo in config_imputacao.items():
         if coluna not in df.columns:
             continue
@@ -49,46 +79,29 @@ def imputar_por_coluna(
         if df[coluna].isna().sum() == 0:
             continue  # Sem valores faltantes
         
-        # Aplicar método de imputação
-        if metodo == 'mean':
-            df[coluna] = df[coluna].fillna(df[coluna].mean())
-        elif metodo == 'median':
-            df[coluna] = df[coluna].fillna(df[coluna].median())
-        elif metodo == 'mode':
-            if df[coluna].notna().any():
-                modo = df[coluna].mode(dropna=True)
-                if len(modo) > 0:
-                    df[coluna] = df[coluna].fillna(modo.iloc[0])
-        elif metodo == 'zero':
-            df[coluna] = df[coluna].fillna(0)
-        elif metodo == 'forward':
-            df[coluna] = df[coluna].fillna(method='ffill')
-        elif metodo == 'backward':
-            df[coluna] = df[coluna].fillna(method='bfill')
-        else:
-            # Valor constante específico
-            df[coluna] = df[coluna].fillna(metodo)
-    
-    # Imputa colunas não especificadas com método padrão
+        df[coluna] = _imputar_serie(df[coluna], metodo)
+
+    if metodo_padrao is None:
+        return df
+
+    # Imputa colunas não especificadas com método padrão (quando definido)
     colunas_restantes = [c for c in df.columns if c not in config_imputacao]
-    
+
     for coluna in colunas_restantes:
         if df[coluna].isna().sum() == 0:
             continue
-        
-        # Detecta tipo da coluna
+
         if pd.api.types.is_numeric_dtype(df[coluna]):
-            if metodo_padrao == 'mean':
-                df[coluna] = df[coluna].fillna(df[coluna].mean())
-            elif metodo_padrao == 'median':
-                df[coluna] = df[coluna].fillna(df[coluna].median())
+            if metodo_padrao in {"mean", "median", "zero", "forward", "backward"}:
+                df[coluna] = _imputar_serie(df[coluna], metodo_padrao)
             else:
-                df[coluna] = df[coluna].fillna(0)
+                df[coluna] = _imputar_serie(df[coluna], 0)
         else:
-            # Categórica
-            if df[coluna].notna().any():
-                modo = df[coluna].mode(dropna=True)
-                if len(modo) > 0:
-                    df[coluna] = df[coluna].fillna(modo.iloc[0])
+            if metodo_padrao in {"mode", "forward", "backward"}:
+                df[coluna] = _imputar_serie(df[coluna], metodo_padrao)
+            elif metodo_padrao in {"mean", "median", "zero"}:
+                df[coluna] = _imputar_serie(df[coluna], "mode")
+            else:
+                df[coluna] = _imputar_serie(df[coluna], metodo_padrao)
     
     return df

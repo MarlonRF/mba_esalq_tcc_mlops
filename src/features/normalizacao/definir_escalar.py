@@ -23,7 +23,10 @@ def pick_scaler(nome: str):
     Returns:
         Instância do scaler sklearn
     """
-    nome = (nome or "standard").lower()
-    cls = SCALERS.get(nome, StandardScaler)
+    nome_normalizado = (nome or "standard").lower()
+    cls = SCALERS.get(nome_normalizado)
+    if cls is None:
+        disponiveis = ", ".join(sorted(SCALERS.keys()))
+        raise ValueError(f"Metodo de normalizacao invalido: {nome}. Opcoes: {disponiveis}")
     return cls()
 

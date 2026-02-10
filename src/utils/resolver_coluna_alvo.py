@@ -39,12 +39,17 @@ def resolver_coluna_alvo(
             configuracao_alvo.lower()
         ]
 
-    # 3. Verifica correspondência com normalização de separadores
+    # 3. Verifica correspondência com variações de separadores
     else:
-        chave_alternativa = (
-            (configuracao_alvo or "").lower().replace("_", "-").replace("-", "_")
-        )
-        if chave_alternativa in mapeamento_colunas_minusculas:
-            coluna_alvo_encontrada = mapeamento_colunas_minusculas[chave_alternativa]
+        chave_base = (configuracao_alvo or "").lower().strip()
+        chaves_alternativas = {
+            chave_base,
+            chave_base.replace("_", "-"),
+            chave_base.replace("-", "_"),
+        }
+        for chave in chaves_alternativas:
+            if chave in mapeamento_colunas_minusculas:
+                coluna_alvo_encontrada = mapeamento_colunas_minusculas[chave]
+                break
 
     return coluna_alvo_encontrada

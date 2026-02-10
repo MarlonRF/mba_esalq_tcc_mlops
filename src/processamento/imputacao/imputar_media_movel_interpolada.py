@@ -30,12 +30,19 @@ def imputar_media_movel_interpolada(
     if coluna not in df.columns:
         return df
     
-    # Passo 1: Média móvel
-    df[coluna] = df[coluna].fillna(
-        df[coluna].rolling(window=window, min_periods=1).mean()
-    )
-    
-    # Passo 2: Interpolação
-    df[coluna] = df[coluna].interpolate(method=metodo_interpolacao)
-    
+    serie = df[coluna]
+    if serie.isna().sum() == 0:
+        return df
+    if serie.notna().sum() == 0:
+        return df
+
+    # Interpola primeiro para respeitar continuidade temporal dos dados.
+    serie_imputada = serie.interpolate(method=metodo_interpolacao, limit_direction="both")
+
+    # Se restarem NaN (cenários específicos), usa média móvel como fallback.
+    if serie_imputada.isna().any():
+        media_movel = serie_imputada.rolling(window=window, min_periods=1).mean()
+        serie_imputada = serie_imputada.fillna(media_movel)
+
+    df[coluna] = serie_imputada
     return df
