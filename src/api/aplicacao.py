@@ -2,7 +2,7 @@
 
 import pandas as pd
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 
 try:
     from .configuracoes import obter_configuracoes_api
@@ -25,27 +25,54 @@ except ImportError:
     from preditor import Preditor, PreditorPyCaret  # type: ignore
 
 
+def aplicar_cabecalhos_transicao(
+    resposta_http: Response, compatibilidade_legado_ativa: bool, data_limite_legado: str
+) -> None:
+    """Inclui cabecalhos para orientar clientes na transicao de contrato."""
+    resposta_http.headers["X-Compatibilidade-Legado"] = (
+        "ativa" if compatibilidade_legado_ativa else "inativa"
+    )
+    resposta_http.headers["X-Data-Limite-Legado"] = data_limite_legado
+
+
 def criar_aplicacao(preditor: Preditor | None = None) -> FastAPI:
     configuracoes = obter_configuracoes_api()
     aplicacao = FastAPI(title="API de Conforto Termico", version="1.2.0")
     aplicacao.state.preditor = preditor or PreditorPyCaret(configuracoes.nome_modelo)
 
-    @aplicacao.get("/", response_model=RespostaRaiz)
-    def ler_raiz() -> RespostaRaiz:
-        return RespostaRaiz.criar_compativel("API de Conforto Termico em execucao!")
+    @aplicacao.get("/", response_model=RespostaRaiz, response_model_exclude_none=True)
+    def ler_raiz(resposta_http: Response) -> RespostaRaiz:
+        aplicar_cabecalhos_transicao(
+            resposta_http,
+            configuracoes.compatibilidade_legado_ativa,
+            configuracoes.data_limite_legado,
+        )
+        return RespostaRaiz.criar_compativel(
+            "API de Conforto Termico em execucao!",
+            incluir_legado=configuracoes.compatibilidade_legado_ativa,
+        )
 
     @aplicacao.get("/health", response_model=RespostaSaude)
     def verificar_saude() -> RespostaSaude:
         return RespostaSaude(status="saudavel")
 
-    @aplicacao.post("/predict", response_model=SaidaConfortoTermico)
-    def prever(dados: EntradaConfortoTermico) -> SaidaConfortoTermico:
+    @aplicacao.post(
+        "/predict", response_model=SaidaConfortoTermico, response_model_exclude_none=True
+    )
+    def prever(dados: EntradaConfortoTermico, resposta_http: Response) -> SaidaConfortoTermico:
         quadro_dados = pd.DataFrame([dados.model_dump()])
         try:
             rotulo = aplicacao.state.preditor.prever_rotulo(quadro_dados)
         except Exception as erro:
             raise HTTPException(status_code=503, detail=f"Modelo indisponivel: {erro}") from erro
-        return SaidaConfortoTermico.criar_compativel(rotulo)
+        aplicar_cabecalhos_transicao(
+            resposta_http,
+            configuracoes.compatibilidade_legado_ativa,
+            configuracoes.data_limite_legado,
+        )
+        return SaidaConfortoTermico.criar_compativel(
+            rotulo, incluir_legado=configuracoes.compatibilidade_legado_ativa
+        )
 
     return aplicacao
 

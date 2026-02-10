@@ -38,6 +38,12 @@ Ela pode ser executada separadamente dos pipelines, consumindo apenas o artefato
 Compatibilidade temporaria:
 - `predicao`: campo oficial atual
 - `prediction`: campo legado para clientes antigos
+- `mensagem`: campo oficial atual no endpoint `/`
+- `message`: campo legado para clientes antigos no endpoint `/`
+
+Politica de corte:
+- data limite padrao para campos legados: `2026-06-30`
+- variavel para manter/desligar legado: `API_COMPAT_LEGADO_ATIVA` (`1`/`0`)
 
 ## Execucao local (modo subprojeto)
 
@@ -52,6 +58,8 @@ uv run uvicorn aplicacao:aplicacao --host 0.0.0.0 --port 8080
 - `API_CAMINHO_MODELO`: caminho/base do arquivo de modelo (com ou sem `.pkl`)
 - `API_ENDERECO_HOST`: host de bind da API (padrao `0.0.0.0`)
 - `API_PORTA`: porta da API (padrao `8080`)
+- `API_COMPAT_LEGADO_ATIVA`: ativa/desativa campos legados (`1` por padrao)
+- `API_DATA_LIMITE_LEGADO`: data informativa de retirada do legado (`2026-06-30`)
 
 Compatibilidade mantida:
 - `API_MODEL_PATH`

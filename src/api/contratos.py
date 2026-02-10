@@ -21,24 +21,32 @@ class SaidaConfortoTermico(BaseModel):
     """Carga de saida da predicao."""
 
     predicao: str
-    prediction: str
+    prediction: str | None = None
 
     @classmethod
-    def criar_compativel(cls, predicao: str) -> "SaidaConfortoTermico":
+    def criar_compativel(
+        cls, predicao: str, incluir_legado: bool = True
+    ) -> "SaidaConfortoTermico":
         """Gera resposta com campo novo e legado durante transicao."""
-        return cls(predicao=predicao, prediction=predicao)
+        if incluir_legado:
+            return cls(predicao=predicao, prediction=predicao)
+        return cls(predicao=predicao)
 
 
 class RespostaRaiz(BaseModel):
     """Resposta do endpoint raiz."""
 
     mensagem: str
-    message: str
+    message: str | None = None
 
     @classmethod
-    def criar_compativel(cls, mensagem: str) -> "RespostaRaiz":
+    def criar_compativel(
+        cls, mensagem: str, incluir_legado: bool = True
+    ) -> "RespostaRaiz":
         """Gera resposta com campo novo e legado durante transicao."""
-        return cls(mensagem=mensagem, message=mensagem)
+        if incluir_legado:
+            return cls(mensagem=mensagem, message=mensagem)
+        return cls(mensagem=mensagem)
 
 
 class RespostaSaude(BaseModel):

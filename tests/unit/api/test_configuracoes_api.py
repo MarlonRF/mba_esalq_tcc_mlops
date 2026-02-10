@@ -1,6 +1,7 @@
 """Testes unitarios para configuracoes da API."""
 
 from src.api.configuracoes import (
+    converter_texto_para_bool,
     obter_configuracoes_api,
     remover_sufixo_pkl,
     resolver_nome_modelo,
@@ -32,10 +33,23 @@ def test_obter_configuracoes_api_ler_variaveis_portuguesas(monkeypatch):
     monkeypatch.setenv("API_ENDERECO_HOST", "127.0.0.1")
     monkeypatch.setenv("API_PORTA", "9001")
     monkeypatch.setenv("API_CAMINHO_MODELO", "artefatos/modelo_api.pkl")
+    monkeypatch.setenv("API_COMPAT_LEGADO_ATIVA", "sim")
+    monkeypatch.setenv("API_DATA_LIMITE_LEGADO", "2026-06-30")
 
     configuracoes = obter_configuracoes_api()
 
     assert configuracoes.endereco_host == "127.0.0.1"
     assert configuracoes.porta == 9001
     assert configuracoes.nome_modelo == "artefatos/modelo_api"
+    assert configuracoes.compatibilidade_legado_ativa is True
+    assert configuracoes.data_limite_legado == "2026-06-30"
 
+
+def test_converter_texto_para_bool():
+    """Converte formatos comuns de booleano em variaveis de ambiente."""
+    assert converter_texto_para_bool("1") is True
+    assert converter_texto_para_bool("true") is True
+    assert converter_texto_para_bool("sim") is True
+    assert converter_texto_para_bool("0") is False
+    assert converter_texto_para_bool("nao") is False
+    assert converter_texto_para_bool(None, padrao=False) is False

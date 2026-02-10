@@ -31,6 +31,7 @@ class TestAPIConfortoTermico:
         assert "message" in data
         assert data["mensagem"] == "API de Conforto Termico em execucao!"
         assert data["message"] == data["mensagem"]
+        assert response.headers["X-Compatibilidade-Legado"] == "ativa"
 
     @pytest.mark.api
     def test_predicao_dados_validos(self, client):
@@ -56,6 +57,7 @@ class TestAPIConfortoTermico:
         assert isinstance(data["predicao"], str)
         assert len(data["predicao"]) > 0
         assert data["prediction"] == data["predicao"]
+        assert response.headers["X-Compatibilidade-Legado"] == "ativa"
 
     @pytest.mark.api
     def test_predicao_dados_invalidos(self, client):

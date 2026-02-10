@@ -108,8 +108,10 @@ jobs:
           import os
 
           dados = json.loads(os.environ["RESPOSTA"])
-          if "predicao" not in dados and "prediction" not in dados:
-              raise SystemExit("Resposta sem campo de predicao")
+          if "predicao" not in dados:
+              raise SystemExit("Resposta sem campo oficial predicao")
+          if "prediction" in dados and dados["prediction"] != dados["predicao"]:
+              raise SystemExit("Campos predicao/prediction divergentes")
           PY
 
       - name: Stop container

@@ -11,6 +11,13 @@ def remover_sufixo_pkl(caminho_modelo: str) -> str:
     return caminho_modelo
 
 
+def converter_texto_para_bool(valor: str | None, padrao: bool = True) -> bool:
+    """Converte texto de variavel de ambiente para booleano."""
+    if valor is None:
+        return padrao
+    return valor.strip().lower() in {"1", "true", "sim", "yes", "on"}
+
+
 def resolver_nome_modelo() -> str:
     valor_ambiente = os.environ.get("API_CAMINHO_MODELO") or os.environ.get("API_MODEL_PATH")
     if valor_ambiente:
@@ -34,6 +41,8 @@ class ConfiguracoesApi:
     endereco_host: str
     porta: int
     nome_modelo: str
+    compatibilidade_legado_ativa: bool
+    data_limite_legado: str
 
 
 def obter_configuracoes_api() -> ConfiguracoesApi:
@@ -41,4 +50,8 @@ def obter_configuracoes_api() -> ConfiguracoesApi:
         endereco_host=os.environ.get("API_ENDERECO_HOST", os.environ.get("API_HOST", "0.0.0.0")),
         porta=int(os.environ.get("API_PORTA", os.environ.get("PORT", os.environ.get("API_PORT", "8080")))),
         nome_modelo=resolver_nome_modelo(),
+        compatibilidade_legado_ativa=converter_texto_para_bool(
+            os.environ.get("API_COMPAT_LEGADO_ATIVA"), padrao=True
+        ),
+        data_limite_legado=os.environ.get("API_DATA_LIMITE_LEGADO", "2026-06-30"),
     )
