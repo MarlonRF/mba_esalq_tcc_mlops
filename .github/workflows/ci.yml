@@ -9,9 +9,14 @@ on:
 env:
   PYTHON_VERSION: "3.11"
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit-critical:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +41,11 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --extra test
+
+      - name: Verificacoes de qualidade minima
+        run: |
+          uv run python -m compileall -q src
+          uv build
 
       - name: Run critical unit tests (without ClearML)
         run: |
@@ -62,9 +72,13 @@ jobs:
   api-smoke:
     runs-on: ubuntu-latest
     needs: unit-critical
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Preparar pasta de relatorios
+        run: mkdir -p relatorios/api-smoke
 
       - name: Build API image
         run: docker build -t conforto-api:ci -f src/api/Dockerfile src/api
@@ -113,6 +127,10 @@ jobs:
           if "prediction" in dados and dados["prediction"] != dados["predicao"]:
               raise SystemExit("Campos predicao/prediction divergentes")
           PY
+
+      - name: Capturar logs (legado ativo)
+        if: always()
+        run: docker logs conforto-api-test > relatorios/api-smoke/logs-legado-ativo.txt 2>&1 || true
 
       - name: Stop container (legado ativo)
         run: |
@@ -166,6 +184,10 @@ jobs:
           if "prediction" in dados:
               raise SystemExit("Campo legado prediction nao deveria estar presente")
           PY
+
+      - name: Capturar logs (legado inativo)
+        if: always()
+        run: docker logs conforto-api-test > relatorios/api-smoke/logs-legado-inativo.txt 2>&1 || true
 
       - name: Stop container (legado inativo)
         run: |
@@ -226,8 +248,20 @@ jobs:
                   raise SystemExit("Cabecalho de modo corte nao indica ativo")
           PY
 
+      - name: Capturar logs (modo corte legado)
+        if: always()
+        run: docker logs conforto-api-test > relatorios/api-smoke/logs-modo-corte.txt 2>&1 || true
+
       - name: Stop container
         if: always()
         run: |
           docker stop conforto-api-test || true
           docker rm conforto-api-test || true
+
+      - name: Upload relatorios API smoke
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-api-smoke
+          path: relatorios/api-smoke/**
+          if-no-files-found: warn
