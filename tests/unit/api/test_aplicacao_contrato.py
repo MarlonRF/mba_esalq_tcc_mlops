@@ -38,6 +38,7 @@ def test_contrato_com_legado_ativo(monkeypatch):
     assert dados_raiz["mensagem"] == "API de Conforto Termico em execucao!"
     assert dados_raiz["message"] == dados_raiz["mensagem"]
     assert resposta_raiz.headers["X-Compatibilidade-Legado"] == "ativa"
+    assert resposta_raiz.headers["X-Modo-Corte-Legado"] == "inativo"
     assert resposta_raiz.headers["X-Data-Limite-Legado"] == "2026-06-30"
 
     resposta_predicao = cliente.post("/predict", json=corpo_entrada_valido())
@@ -47,6 +48,7 @@ def test_contrato_com_legado_ativo(monkeypatch):
     assert dados_predicao["predicao"] == "Confortavel"
     assert dados_predicao["prediction"] == dados_predicao["predicao"]
     assert resposta_predicao.headers["X-Compatibilidade-Legado"] == "ativa"
+    assert resposta_predicao.headers["X-Modo-Corte-Legado"] == "inativo"
 
 
 def test_contrato_com_legado_inativo(monkeypatch):
@@ -63,6 +65,7 @@ def test_contrato_com_legado_inativo(monkeypatch):
     assert dados_raiz["mensagem"] == "API de Conforto Termico em execucao!"
     assert "message" not in dados_raiz
     assert resposta_raiz.headers["X-Compatibilidade-Legado"] == "inativa"
+    assert resposta_raiz.headers["X-Modo-Corte-Legado"] == "inativo"
 
     resposta_predicao = cliente.post("/predict", json=corpo_entrada_valido())
     dados_predicao = resposta_predicao.json()
@@ -71,4 +74,27 @@ def test_contrato_com_legado_inativo(monkeypatch):
     assert dados_predicao["predicao"] == "Confortavel"
     assert "prediction" not in dados_predicao
     assert resposta_predicao.headers["X-Compatibilidade-Legado"] == "inativa"
+    assert resposta_predicao.headers["X-Modo-Corte-Legado"] == "inativo"
 
+
+def test_contrato_com_modo_corte_ativo(monkeypatch):
+    """Modo corte remove legado mesmo com flag de compatibilidade ligada."""
+    monkeypatch.setenv("API_COMPAT_LEGADO_ATIVA", "1")
+    monkeypatch.setenv("API_MODO_CORTE_LEGADO", "1")
+    monkeypatch.setenv("API_DATA_LIMITE_LEGADO", "2026-06-30")
+
+    cliente = TestClient(criar_aplicacao(PreditorFalso()))
+
+    resposta_raiz = cliente.get("/")
+    dados_raiz = resposta_raiz.json()
+    assert dados_raiz["mensagem"] == "API de Conforto Termico em execucao!"
+    assert "message" not in dados_raiz
+    assert resposta_raiz.headers["X-Compatibilidade-Legado"] == "inativa"
+    assert resposta_raiz.headers["X-Modo-Corte-Legado"] == "ativo"
+
+    resposta_predicao = cliente.post("/predict", json=corpo_entrada_valido())
+    dados_predicao = resposta_predicao.json()
+    assert dados_predicao["predicao"] == "Confortavel"
+    assert "prediction" not in dados_predicao
+    assert resposta_predicao.headers["X-Compatibilidade-Legado"] == "inativa"
+    assert resposta_predicao.headers["X-Modo-Corte-Legado"] == "ativo"

@@ -44,7 +44,9 @@ Compatibilidade temporaria:
 Politica de corte:
 - data limite padrao para campos legados: `2026-06-30`
 - variavel para manter/desligar legado: `API_COMPAT_LEGADO_ATIVA` (`1`/`0`)
+- variavel de release para corte definitivo: `API_MODO_CORTE_LEGADO` (`1`/`0`)
 - recomendacao: homologacao com `API_COMPAT_LEGADO_ATIVA=0` antes do corte em producao
+- quando `API_MODO_CORTE_LEGADO=1`, os campos legados sao removidos mesmo que `API_COMPAT_LEGADO_ATIVA=1`
 
 ## Execucao local (modo subprojeto)
 
@@ -60,6 +62,7 @@ uv run uvicorn aplicacao:aplicacao --host 0.0.0.0 --port 8080
 - `API_ENDERECO_HOST`: host de bind da API (padrao `0.0.0.0`)
 - `API_PORTA`: porta da API (padrao `8080`)
 - `API_COMPAT_LEGADO_ATIVA`: ativa/desativa campos legados (`1` por padrao)
+- `API_MODO_CORTE_LEGADO`: ativa modo corte e remove campos legados (`0` por padrao)
 - `API_DATA_LIMITE_LEGADO`: data informativa de retirada do legado (`2026-06-30`)
 
 Compatibilidade mantida:

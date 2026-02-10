@@ -26,18 +26,24 @@ except ImportError:
 
 
 def aplicar_cabecalhos_transicao(
-    resposta_http: Response, compatibilidade_legado_ativa: bool, data_limite_legado: str
+    resposta_http: Response,
+    compatibilidade_legado_ativa: bool,
+    modo_corte_legado_ativo: bool,
+    data_limite_legado: str,
 ) -> None:
     """Inclui cabecalhos para orientar clientes na transicao de contrato."""
     resposta_http.headers["X-Compatibilidade-Legado"] = (
         "ativa" if compatibilidade_legado_ativa else "inativa"
+    )
+    resposta_http.headers["X-Modo-Corte-Legado"] = (
+        "ativo" if modo_corte_legado_ativo else "inativo"
     )
     resposta_http.headers["X-Data-Limite-Legado"] = data_limite_legado
 
 
 def criar_aplicacao(preditor: Preditor | None = None) -> FastAPI:
     configuracoes = obter_configuracoes_api()
-    aplicacao = FastAPI(title="API de Conforto Termico", version="1.2.0")
+    aplicacao = FastAPI(title="API de Conforto Termico", version="1.3.0")
     aplicacao.state.preditor = preditor or PreditorPyCaret(configuracoes.nome_modelo)
 
     @aplicacao.get("/", response_model=RespostaRaiz, response_model_exclude_none=True)
@@ -45,6 +51,7 @@ def criar_aplicacao(preditor: Preditor | None = None) -> FastAPI:
         aplicar_cabecalhos_transicao(
             resposta_http,
             configuracoes.compatibilidade_legado_ativa,
+            configuracoes.modo_corte_legado_ativo,
             configuracoes.data_limite_legado,
         )
         return RespostaRaiz.criar_compativel(
@@ -68,6 +75,7 @@ def criar_aplicacao(preditor: Preditor | None = None) -> FastAPI:
         aplicar_cabecalhos_transicao(
             resposta_http,
             configuracoes.compatibilidade_legado_ativa,
+            configuracoes.modo_corte_legado_ativo,
             configuracoes.data_limite_legado,
         )
         return SaidaConfortoTermico.criar_compativel(

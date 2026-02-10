@@ -42,16 +42,25 @@ class ConfiguracoesApi:
     porta: int
     nome_modelo: str
     compatibilidade_legado_ativa: bool
+    modo_corte_legado_ativo: bool
     data_limite_legado: str
 
 
 def obter_configuracoes_api() -> ConfiguracoesApi:
+    modo_corte_legado_ativo = converter_texto_para_bool(
+        os.environ.get("API_MODO_CORTE_LEGADO"), padrao=False
+    )
+    compatibilidade_legado_ativa = converter_texto_para_bool(
+        os.environ.get("API_COMPAT_LEGADO_ATIVA"), padrao=True
+    )
+    if modo_corte_legado_ativo:
+        compatibilidade_legado_ativa = False
+
     return ConfiguracoesApi(
         endereco_host=os.environ.get("API_ENDERECO_HOST", os.environ.get("API_HOST", "0.0.0.0")),
         porta=int(os.environ.get("API_PORTA", os.environ.get("PORT", os.environ.get("API_PORT", "8080")))),
         nome_modelo=resolver_nome_modelo(),
-        compatibilidade_legado_ativa=converter_texto_para_bool(
-            os.environ.get("API_COMPAT_LEGADO_ATIVA"), padrao=True
-        ),
+        compatibilidade_legado_ativa=compatibilidade_legado_ativa,
+        modo_corte_legado_ativo=modo_corte_legado_ativo,
         data_limite_legado=os.environ.get("API_DATA_LIMITE_LEGADO", "2026-06-30"),
     )

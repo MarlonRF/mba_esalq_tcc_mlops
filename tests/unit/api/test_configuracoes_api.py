@@ -34,6 +34,7 @@ def test_obter_configuracoes_api_ler_variaveis_portuguesas(monkeypatch):
     monkeypatch.setenv("API_PORTA", "9001")
     monkeypatch.setenv("API_CAMINHO_MODELO", "artefatos/modelo_api.pkl")
     monkeypatch.setenv("API_COMPAT_LEGADO_ATIVA", "sim")
+    monkeypatch.setenv("API_MODO_CORTE_LEGADO", "0")
     monkeypatch.setenv("API_DATA_LIMITE_LEGADO", "2026-06-30")
 
     configuracoes = obter_configuracoes_api()
@@ -42,6 +43,7 @@ def test_obter_configuracoes_api_ler_variaveis_portuguesas(monkeypatch):
     assert configuracoes.porta == 9001
     assert configuracoes.nome_modelo == "artefatos/modelo_api"
     assert configuracoes.compatibilidade_legado_ativa is True
+    assert configuracoes.modo_corte_legado_ativo is False
     assert configuracoes.data_limite_legado == "2026-06-30"
 
 
@@ -53,3 +55,14 @@ def test_converter_texto_para_bool():
     assert converter_texto_para_bool("0") is False
     assert converter_texto_para_bool("nao") is False
     assert converter_texto_para_bool(None, padrao=False) is False
+
+
+def test_modo_corte_sobrepoe_compatibilidade(monkeypatch):
+    """Quando modo corte esta ativo, legado fica inativo obrigatoriamente."""
+    monkeypatch.setenv("API_COMPAT_LEGADO_ATIVA", "1")
+    monkeypatch.setenv("API_MODO_CORTE_LEGADO", "1")
+
+    configuracoes = obter_configuracoes_api()
+
+    assert configuracoes.modo_corte_legado_ativo is True
+    assert configuracoes.compatibilidade_legado_ativa is False
