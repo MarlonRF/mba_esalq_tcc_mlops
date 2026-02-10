@@ -29,6 +29,14 @@ on:
         options:
           - "0"
           - "1"
+      modo_teste_sem_gcp:
+        description: "Executa validacao de CD sem autenticar/deploy no GCP (1=sim, 0=nao)"
+        required: true
+        default: "0"
+        type: choice
+        options:
+          - "0"
+          - "1"
 
 env:
   PYTHON_VERSION: "3.11"
@@ -90,38 +98,57 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Authenticate in Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-
-      - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ env.PROJECT_ID }}
-
-      - name: Configure Docker auth
-        run: gcloud auth configure-docker gcr.io --quiet
-
-      - name: Build and push image
-        run: |
-          docker build -t ${{ env.IMAGE_BASE }}:${{ github.sha }} -t ${{ env.IMAGE_BASE }}:latest -f src/api/Dockerfile src/api
-          docker push ${{ env.IMAGE_BASE }}:${{ github.sha }}
-          docker push ${{ env.IMAGE_BASE }}:latest
-
       - name: Definir contexto de deploy
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "AMBIENTE_IMPLANTACAO=${{ github.event.inputs.environment }}" >> "$GITHUB_ENV"
             echo "COMPAT_LEGADO=${{ github.event.inputs.compat_legado || '1' }}" >> "$GITHUB_ENV"
             echo "MODO_CORTE_LEGADO=${{ github.event.inputs.modo_corte_legado || '0' }}" >> "$GITHUB_ENV"
+            echo "MODO_TESTE_SEM_GCP=${{ github.event.inputs.modo_teste_sem_gcp || '0' }}" >> "$GITHUB_ENV"
           else
             echo "AMBIENTE_IMPLANTACAO=staging" >> "$GITHUB_ENV"
             echo "COMPAT_LEGADO=1" >> "$GITHUB_ENV"
             echo "MODO_CORTE_LEGADO=0" >> "$GITHUB_ENV"
+            echo "MODO_TESTE_SEM_GCP=0" >> "$GITHUB_ENV"
           fi
 
+      - name: Validar pre-requisitos GCP
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
+        run: |
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+            echo "Secret ausente: GCP_PROJECT_ID"
+            exit 1
+          fi
+          if [ -z "${{ secrets.GCP_CREDENTIALS }}" ]; then
+            echo "Secret ausente: GCP_CREDENTIALS"
+            exit 1
+          fi
+
+      - name: Authenticate in Google Cloud
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Setup gcloud
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker auth
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
+        run: gcloud auth configure-docker gcr.io --quiet
+
+      - name: Build and push image
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
+        run: |
+          docker build -t ${{ env.IMAGE_BASE }}:${{ github.sha }} -t ${{ env.IMAGE_BASE }}:latest -f src/api/Dockerfile src/api
+          docker push ${{ env.IMAGE_BASE }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_BASE }}:latest
+
       - name: Definir servico de deploy
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
         run: |
           if [ "$AMBIENTE_IMPLANTACAO" = "staging" ]; then
             echo "SERVICO_IMPLANTACAO=${SERVICE_NAME}-staging" >> "$GITHUB_ENV"
@@ -130,6 +157,7 @@ jobs:
           fi
 
       - name: Deploy Cloud Run
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
         run: |
           gcloud run deploy ${SERVICO_IMPLANTACAO} \
             --image ${{ env.IMAGE_BASE }}:${{ github.sha }} \
@@ -145,6 +173,7 @@ jobs:
             --set-env-vars=ENVIRONMENT=${AMBIENTE_IMPLANTACAO},API_COMPAT_LEGADO_ATIVA=${COMPAT_LEGADO},API_MODO_CORTE_LEGADO=${MODO_CORTE_LEGADO},API_DATA_LIMITE_LEGADO=2026-06-30
 
       - name: Health check
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
         run: |
           URL=$(gcloud run services describe ${SERVICO_IMPLANTACAO} --region ${{ env.REGION }} --format 'value(status.url)')
           sleep 15
@@ -152,6 +181,7 @@ jobs:
           echo "Deploy healthy at: $URL"
 
       - name: Smoke contrato apos deploy
+        if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
         run: |
           URL=$(gcloud run services describe ${SERVICO_IMPLANTACAO} --region ${{ env.REGION }} --format 'value(status.url)')
           export URL
@@ -186,3 +216,37 @@ jobs:
               if resp.headers.get("X-Modo-Corte-Legado") not in {"ativo", "inativo"}:
                   raise SystemExit("Cabecalho X-Modo-Corte-Legado invalido")
           PY
+
+      - name: Teste local de CD (sem GCP)
+        if: ${{ env.MODO_TESTE_SEM_GCP == '1' }}
+        run: |
+          docker build -t conforto-api:cd-teste -f src/api/Dockerfile src/api
+          docker run -d --name conforto-api-cd -p 8080:8080 conforto-api:cd-teste
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/health >/dev/null; then
+              break
+            fi
+            sleep 1
+            if [ "$i" -eq 30 ]; then
+              echo "Falha no health check local"
+              docker logs conforto-api-cd || true
+              exit 1
+            fi
+          done
+          curl -sf -X POST http://localhost:8080/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+              "idade_anos": 30,
+              "peso_kg": 70.0,
+              "altura_cm": 175,
+              "sexo_biologico": "m",
+              "temperatura_media_c": 25.0,
+              "umidade_relativa_percent": 60.0,
+              "radiacao_solar_media_wm2": 400.0
+            }' >/dev/null
+
+      - name: Encerrar container local de teste
+        if: ${{ always() && env.MODO_TESTE_SEM_GCP == '1' }}
+        run: |
+          docker stop conforto-api-cd || true
+          docker rm conforto-api-cd || true
