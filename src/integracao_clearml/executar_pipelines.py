@@ -9,9 +9,9 @@ Ou execute cada pipeline separadamente conforme necessidade.
 from pathlib import Path
 from typing import Dict, Any
 
-from src.clearml.pipeline_01_processamento import pipeline_processamento_dados
-from src.clearml.pipeline_02_features import pipeline_features
-from src.clearml.pipeline_03_treinamento import pipeline_treinamento
+from src.integracao_clearml.pipeline_01_processamento import pipeline_processamento_dados
+from src.integracao_clearml.pipeline_02_features import pipeline_features
+from src.integracao_clearml.pipeline_03_treinamento import pipeline_treinamento
 
 
 def executar_pipelines_completo(

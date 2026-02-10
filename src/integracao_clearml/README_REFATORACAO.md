@@ -3,7 +3,7 @@
 ## 📁 Nova Estrutura Modular
 
 ```
-src/clearml/
+src/integracao_clearml/
 ├── utils/                              # Funções auxiliares modulares
 │   ├── __init__.py                    # Exports principais
 │   ├── verificador_clearml.py         # Verifica disponibilidade ClearML
@@ -95,7 +95,7 @@ executar_pipeline_processamento_clearml()
 ### Uso
 
 ```python
-from src.clearml.pipelines_clearml import executar_pipeline_processamento_clearml
+from src.integracao_clearml.pipelines_clearml import executar_pipeline_processamento_clearml
 
 # Modo online (com ClearML)
 resultado = executar_pipeline_processamento_clearml(
@@ -119,13 +119,13 @@ dataset_id = resultado["dataset_id"]  # None se offline
 
 ```bash
 # Com ClearML
-python src/clearml/pipelines_clearml/pipeline_processamento_clearml.py
+python src/integracao_clearml/pipelines_clearml/pipeline_processamento_clearml.py
 
 # Sem ClearML
-python src/clearml/pipelines_clearml/pipeline_processamento_clearml.py --offline
+python src/integracao_clearml/pipelines_clearml/pipeline_processamento_clearml.py --offline
 
 # Arquivo customizado
-python src/clearml/pipelines_clearml/pipeline_processamento_clearml.py dados/meu_arquivo.csv
+python src/integracao_clearml/pipelines_clearml/pipeline_processamento_clearml.py dados/meu_arquivo.csv
 ```
 
 ## 📝 Arquivos Legados
@@ -163,7 +163,7 @@ executar_pipeline_features_clearml()
 ### Uso
 
 ```python
-from src.clearml.pipelines_clearml import executar_pipeline_features_clearml
+from src.integracao_clearml.pipelines_clearml import executar_pipeline_features_clearml
 
 # Modo online (com ClearML)
 resultado = executar_pipeline_features_clearml(
@@ -191,10 +191,10 @@ dataset_id = resultado["dataset_id"]  # None se offline
 
 ```bash
 # Com ClearML
-python src/clearml/pipelines_clearml/pipeline_features_clearml.py
+python src/integracao_clearml/pipelines_clearml/pipeline_features_clearml.py
 
 # Sem ClearML
-python src/clearml/pipelines_clearml/pipeline_features_clearml.py --offline
+python src/integracao_clearml/pipelines_clearml/pipeline_features_clearml.py --offline
 ```
 
 ## 🚀 Próximos Passos

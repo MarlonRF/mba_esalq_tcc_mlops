@@ -12,7 +12,7 @@ from pathlib import Path
 # Adicionar src ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.clearml.pipeline_completo_decorators import executar_pipeline
+from src.integracao_clearml.pipeline_completo_decorators import executar_pipeline
 
 # Caminho do arquivo CSV
 CAMINHO_DADOS = "dados/2025.05.14_thermal_confort_santa_maria_brazil_.csv"

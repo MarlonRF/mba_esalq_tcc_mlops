@@ -15,7 +15,7 @@ def carregar_credenciais_clearml() -> bool:
         bool: True se credenciais foram carregadas com sucesso
     """
     # Procurar arquivo .env na raiz do projeto
-    # Subir 3 níveis: src/clearml/utils -> src/clearml -> src -> raiz
+    # Subir 3 níveis: src/integracao_clearml/utils -> src/integracao_clearml -> src -> raiz
     env_path = Path(__file__).parent.parent.parent.parent / '.env'
     
     if not env_path.exists():

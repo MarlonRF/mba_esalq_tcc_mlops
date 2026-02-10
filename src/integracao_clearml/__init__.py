@@ -16,7 +16,7 @@ Uso Básico:
 -----------
 ```python
 # Importações principais
-from src.clearml import (
+from src.integracao_clearml import (
     pipeline, component,  # Decoradores
     criar_task, buscar_dataset,  # Gerenciadores
     ClearMLContext  # Context manager
@@ -119,7 +119,7 @@ from .dataset_manager import (
 # ============================= Pipeline Completo (Decorators) =============================
 # Pipeline principal com @PipelineDecorator.pipeline e @PipelineDecorator.component
 # Arquivo: pipeline_completo_decorators.py
-# Uso: from src.clearml.pipeline_completo_decorators import executar_pipeline
+# Uso: from src.integracao_clearml.pipeline_completo_decorators import executar_pipeline
 
 # ============================= Registro de Modelos =============================
 from .registrar_modelo_clearml import (

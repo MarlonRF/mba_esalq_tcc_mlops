@@ -16,7 +16,7 @@ from config.logger_config import logger
 from config import config_gerais as config
 
 # Módulo ClearML
-from src.clearml import (
+from src.integracao_clearml import (
     # Configuração
     configure_local_execution,
     
@@ -165,7 +165,7 @@ def exemplo_6_uso_com_context_manager():
     print("EXEMPLO 6: Uso com Context Manager")
     print("=" * 80)
     
-    from src.clearml import ClearMLContext
+    from src.integracao_clearml import ClearMLContext
     
     # Context manager para gerenciamento automático de task
     with ClearMLContext(
@@ -229,7 +229,7 @@ def main():
     print("=" * 80)
     print("\nPara executar outros exemplos, edite este arquivo e descomente")
     print("as linhas correspondentes na função main().")
-    print("\nDOCUMENTAÇÃO COMPLETA: src/clearml/README.MD")
+    print("\nDOCUMENTAÇÃO COMPLETA: src/integracao_clearml/README.MD")
 
 
 if __name__ == "__main__":

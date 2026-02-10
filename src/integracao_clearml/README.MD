@@ -5,7 +5,7 @@ Módulo completo para rastreamento de experimentos, versionamento de datasets e 
 ## 📁 Estrutura de Arquivos
 
 ```
-src/clearml/
+src/integracao_clearml/
 ├── __init__.py                          # Exports principais do módulo
 ├── decorators.py                        # Decorators customizados (@pipeline, @component)
 ├── task_manager.py                      # Gerenciamento de tasks ClearML
@@ -40,7 +40,7 @@ Pipeline MLOps completo usando decorators oficiais do ClearML:
 
 **Uso:**
 ```python
-from src.clearml.pipeline_completo_decorators import executar_pipeline
+from src.integracao_clearml.pipeline_completo_decorators import executar_pipeline
 
 resultado = executar_pipeline(
     caminho_csv='dados/arquivo.csv',
@@ -78,7 +78,7 @@ Função standalone para registro de modelos no ClearML com metadados completos.
 ### 1. Pipeline Completo (Recomendado)
 
 ```python
-from src.clearml.pipeline_completo_decorators import executar_pipeline
+from src.integracao_clearml.pipeline_completo_decorators import executar_pipeline
 
 # Executar pipeline completo (local)
 resultado = executar_pipeline(
@@ -99,7 +99,7 @@ resultado = executar_pipeline(
 ### 2. Criar Task Manual
 
 ```python
-from src.clearml import criar_task, registrar_metrica
+from src.integracao_clearml import criar_task, registrar_metrica
 
 task = criar_task(
     project_name="meu_projeto",
@@ -114,7 +114,7 @@ task.close()
 ### 3. Gerenciar Datasets
 
 ```python
-from src.clearml import criar_e_publicar_dataset
+from src.integracao_clearml import criar_e_publicar_dataset
 
 dataset_id = criar_e_publicar_dataset(
     dataset_name="dados_v1",
@@ -144,7 +144,7 @@ dataset_id = criar_e_publicar_dataset(
 import sys
 sys.path.append('..')
 
-from src.clearml.pipeline_completo_decorators import executar_pipeline
+from src.integracao_clearml.pipeline_completo_decorators import executar_pipeline
 
 # Executar pipeline
 resultado = executar_pipeline(

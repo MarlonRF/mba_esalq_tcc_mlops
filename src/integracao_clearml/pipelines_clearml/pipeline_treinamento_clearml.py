@@ -22,10 +22,10 @@ from config.config_gerais import METRICAS_CLASSIFICACAO, METRICAS_REGRESSAO
 from src.pipelines.pipeline_treinamento_unified import treinar_pipeline_completo
 
 # Importa utilitários ClearML modularizados
-from src.clearml.utils.verificador_clearml import obter_clearml_disponivel
-from src.clearml.utils.operacoes_task import criar_task, obter_task_atual
-from src.clearml.utils.integracao_artefatos import registrar_dataframe, registrar_metricas
-from src.clearml.utils.credenciais_clearml import configurar_clearml_online
+from src.integracao_clearml.utils.verificador_clearml import obter_clearml_disponivel
+from src.integracao_clearml.utils.operacoes_task import criar_task, obter_task_atual
+from src.integracao_clearml.utils.integracao_artefatos import registrar_dataframe, registrar_metricas
+from src.integracao_clearml.utils.credenciais_clearml import configurar_clearml_online
 
 # Tipo literal
 TipoProblema = Literal["classificacao", "regressao"]

@@ -17,11 +17,11 @@ from config.config_custom import NOME_PROJETO, COLUNAS_CATEGORICAS, TIPOS_FEATUR
 from src.pipelines.pipeline_features import executar_pipeline_features
 
 # Importa utilitários ClearML modularizados
-from src.clearml.utils.verificador_clearml import obter_clearml_disponivel
-from src.clearml.utils.operacoes_task import criar_task, obter_task_atual
-from src.clearml.utils.operacoes_dataset import criar_dataset
-from src.clearml.utils.integracao_artefatos import registrar_dataframe, registrar_metricas, registrar_arquivo
-from src.clearml.utils.credenciais_clearml import configurar_clearml_online
+from src.integracao_clearml.utils.verificador_clearml import obter_clearml_disponivel
+from src.integracao_clearml.utils.operacoes_task import criar_task, obter_task_atual
+from src.integracao_clearml.utils.operacoes_dataset import criar_dataset
+from src.integracao_clearml.utils.integracao_artefatos import registrar_dataframe, registrar_metricas, registrar_arquivo
+from src.integracao_clearml.utils.credenciais_clearml import configurar_clearml_online
 
 
 def executar_pipeline_features_clearml(
