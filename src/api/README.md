@@ -44,6 +44,7 @@ Compatibilidade temporaria:
 Politica de corte:
 - data limite padrao para campos legados: `2026-06-30`
 - variavel para manter/desligar legado: `API_COMPAT_LEGADO_ATIVA` (`1`/`0`)
+- recomendacao: homologacao com `API_COMPAT_LEGADO_ATIVA=0` antes do corte em producao
 
 ## Execucao local (modo subprojeto)
 

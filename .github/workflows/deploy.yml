@@ -13,6 +13,14 @@ on:
         options:
           - staging
           - production
+      compat_legado:
+        description: "Compatibilidade de campos legados (1=ativo, 0=inativo)"
+        required: true
+        default: "1"
+        type: choice
+        options:
+          - "1"
+          - "0"
 
 env:
   PYTHON_VERSION: "3.11"
@@ -86,6 +94,10 @@ jobs:
           docker push ${{ env.IMAGE_BASE }}:${{ github.sha }}
           docker push ${{ env.IMAGE_BASE }}:latest
 
+      - name: Definir modo de compatibilidade legado
+        run: |
+          echo "COMPAT_LEGADO=${{ github.event.inputs.compat_legado || '1' }}" >> "$GITHUB_ENV"
+
       - name: Deploy Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
@@ -99,7 +111,7 @@ jobs:
             --min-instances=0 \
             --max-instances=5 \
             --concurrency=80 \
-            --set-env-vars=ENVIRONMENT=${{ github.event.inputs.environment || 'production' }}
+            --set-env-vars=ENVIRONMENT=${{ github.event.inputs.environment || 'production' }},API_COMPAT_LEGADO_ATIVA=${COMPAT_LEGADO},API_DATA_LIMITE_LEGADO=2026-06-30
 
       - name: Health check
         run: |

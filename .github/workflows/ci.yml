@@ -69,7 +69,7 @@ jobs:
       - name: Build API image
         run: docker build -t conforto-api:ci -f src/api/Dockerfile src/api
 
-      - name: Run API container
+      - name: Run API container (legado ativo)
         run: docker run -d --name conforto-api-test -p 8080:8080 conforto-api:ci
 
       - name: Health check
@@ -87,7 +87,7 @@ jobs:
             fi
           done
 
-      - name: Predict smoke
+      - name: Predict smoke (legado ativo)
         run: |
           RESPOSTA=$(curl -sf -X POST http://localhost:8080/predict \
             -H "Content-Type: application/json" \
@@ -112,6 +112,59 @@ jobs:
               raise SystemExit("Resposta sem campo oficial predicao")
           if "prediction" in dados and dados["prediction"] != dados["predicao"]:
               raise SystemExit("Campos predicao/prediction divergentes")
+          PY
+
+      - name: Stop container (legado ativo)
+        run: |
+          docker stop conforto-api-test || true
+          docker rm conforto-api-test || true
+
+      - name: Run API container (legado inativo)
+        run: |
+          docker run -d --name conforto-api-test -p 8080:8080 \
+            -e API_COMPAT_LEGADO_ATIVA=0 \
+            conforto-api:ci
+
+      - name: Health check (legado inativo)
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/health >/dev/null; then
+              echo "API healthy after ${i}s"
+              break
+            fi
+            sleep 1
+            if [ "$i" -eq 30 ]; then
+              echo "API health check failed (legado inativo)"
+              docker logs conforto-api-test || true
+              exit 1
+            fi
+          done
+
+      - name: Predict smoke (legado inativo)
+        run: |
+          RESPOSTA=$(curl -sf -X POST http://localhost:8080/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+              "idade_anos": 30,
+              "peso_kg": 70.0,
+              "altura_cm": 175,
+              "sexo_biologico": "m",
+              "temperatura_media_c": 25.0,
+              "umidade_relativa_percent": 60.0,
+              "radiacao_solar_media_wm2": 400.0
+            }')
+
+          echo "$RESPOSTA"
+          export RESPOSTA
+          python - <<'PY'
+          import json
+          import os
+
+          dados = json.loads(os.environ["RESPOSTA"])
+          if "predicao" not in dados:
+              raise SystemExit("Resposta sem campo oficial predicao")
+          if "prediction" in dados:
+              raise SystemExit("Campo legado prediction nao deveria estar presente")
           PY
 
       - name: Stop container
