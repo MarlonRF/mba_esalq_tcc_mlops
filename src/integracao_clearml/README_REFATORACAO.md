@@ -130,9 +130,9 @@ python src/integracao_clearml/pipelines_clearml/pipeline_processamento_clearml.p
 
 ## 📝 Arquivos Legados
 
-Arquivos antigos foram renomeados com extensão `.py_old`:
-- `pipeline_01_processamento.py_old` - Versão antiga do pipeline de processamento
-- `pipeline_02_features.py_old` - Versão antiga do pipeline de features
+Arquivos antigos foram movidos para `legacy/`:
+- `legacy/pipeline_01_processamento.py_old` - Versão antiga do pipeline de processamento
+- `legacy/pipeline_02_features.py_old` - Versão antiga do pipeline de features
 
 **Ação recomendada:** Manter por período de transição, depois remover.
 
