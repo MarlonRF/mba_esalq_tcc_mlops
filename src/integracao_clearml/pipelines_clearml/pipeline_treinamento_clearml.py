@@ -24,7 +24,10 @@ from src.pipelines.pipeline_treinamento_unified import treinar_pipeline_completo
 # Importa utilitários ClearML modularizados
 from src.integracao_clearml.utils.verificador_clearml import obter_clearml_disponivel
 from src.integracao_clearml.utils.operacoes_task import criar_task, obter_task_atual
-from src.integracao_clearml.utils.integracao_artefatos import registrar_dataframe, registrar_metricas
+from src.integracao_clearml.utils.integracao_artefatos import (
+    registrar_dataframe,
+    registrar_metricas,
+)
 from src.integracao_clearml.utils.credenciais_clearml import configurar_clearml_online
 
 # Tipo literal
