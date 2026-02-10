@@ -112,6 +112,13 @@ jobs:
             echo "MODO_TESTE_SEM_GCP=0" >> "$GITHUB_ENV"
           fi
 
+      - name: Bloquear production fora da main
+        run: |
+          if [ "$AMBIENTE_IMPLANTACAO" = "production" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Deploy production bloqueado: rode apenas a partir da branch main. Branch atual: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
       - name: Validar pre-requisitos GCP
         if: ${{ env.MODO_TESTE_SEM_GCP != '1' }}
         run: |
