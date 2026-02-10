@@ -18,8 +18,8 @@ class TestAPIConfortoTermico:
     @pytest.fixture(scope="class")
     def client(self):
         """Fixture para cliente de teste da API"""
-        from src.api.app import app
-        return TestClient(app)
+        from src.api.aplicacao import aplicacao
+        return TestClient(aplicacao)
 
     @pytest.mark.api
     def test_health_check(self, client):
@@ -28,8 +28,8 @@ class TestAPIConfortoTermico:
         assert response.status_code == 200
 
         data = response.json()
-        assert "message" in data
-        assert data["message"] == "Thermal Comfort API is running!"
+        assert "mensagem" in data
+        assert data["mensagem"] == "API de Conforto Termico em execucao!"
 
     @pytest.mark.api
     def test_predicao_dados_validos(self, client):
@@ -48,11 +48,11 @@ class TestAPIConfortoTermico:
         assert response.status_code == 200
 
         data = response.json()
-        assert "prediction" in data
+        assert "predicao" in data
 
         # Verifica se predição é uma string válida
-        assert isinstance(data["prediction"], str)
-        assert len(data["prediction"]) > 0
+        assert isinstance(data["predicao"], str)
+        assert len(data["predicao"]) > 0
 
     @pytest.mark.api
     def test_predicao_dados_invalidos(self, client):
@@ -85,7 +85,7 @@ class TestAPIConfortoTermico:
         assert response.status_code == 200
 
         data = response.json()
-        assert "prediction" in data
+        assert "predicao" in data
 
     @pytest.mark.api
     def test_predicao_tipos_incorretos(self, client):

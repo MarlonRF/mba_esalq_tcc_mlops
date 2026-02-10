@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-API package para servir modelos de machine learning.
+Pacote da API para servir modelos de machine learning.
 """
 
-from .app import app, create_app
-from .contracts import ThermalComfortInput, ThermalComfortOutput
+from .aplicacao import aplicacao, criar_aplicacao
+from .contratos import EntradaConfortoTermico, SaidaConfortoTermico
 
 __all__ = [
-    "app",
-    "create_app",
-    "ThermalComfortInput",
-    "ThermalComfortOutput",
+    "aplicacao",
+    "criar_aplicacao",
+    "EntradaConfortoTermico",
+    "SaidaConfortoTermico",
 ]

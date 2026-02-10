@@ -1,18 +1,18 @@
-# Thermal Comfort API (Subproject)
+# API de Conforto Termico (Subprojeto)
 
-This folder is a standalone API project inside the monorepo.
-It can run independently from pipelines while still consuming the trained model artifact.
+Esta pasta funciona como subprojeto independente dentro do monorepo.
+Ela pode ser executada separadamente dos pipelines, consumindo apenas o artefato do modelo treinado.
 
-## Architecture
+## Arquitetura
 
-- `app.py`: FastAPI application factory and routes
-- `contracts.py`: request/response contract (Pydantic)
-- `predictor.py`: prediction adapter (PyCaret runtime)
-- `settings.py`: runtime settings and model path resolution
+- `aplicacao.py`: fabrica da aplicacao FastAPI e rotas
+- `contratos.py`: contrato de entrada e saida (Pydantic)
+- `preditor.py`: adaptador de predicao (runtime PyCaret)
+- `configuracoes.py`: leitura de configuracoes e resolucao do caminho do modelo
 
-## Interface Contract
+## Contrato de Interface
 
-### `POST /predict` input
+### Entrada `POST /predict`
 
 ```json
 {
@@ -26,41 +26,47 @@ It can run independently from pipelines while still consuming the trained model 
 }
 ```
 
-### `POST /predict` output
+### Saida `POST /predict`
 
 ```json
 {
-  "prediction": "Neutro"
+  "predicao": "Neutro"
 }
 ```
 
-## Run locally (subproject mode)
+## Execucao local (modo subprojeto)
 
 ```powershell
 cd src/api
 uv sync
-uv run uvicorn app:app --host 0.0.0.0 --port 8080
+uv run uvicorn aplicacao:aplicacao --host 0.0.0.0 --port 8080
 ```
 
-## Environment variables
+## Variaveis de ambiente
 
-- `API_MODEL_PATH`: path/basename for model file (with or without `.pkl`)
-- `API_HOST`: API bind host (default `0.0.0.0`)
-- `API_PORT` or `PORT`: API bind port (default `8080`)
+- `API_CAMINHO_MODELO`: caminho/base do arquivo de modelo (com ou sem `.pkl`)
+- `API_ENDERECO_HOST`: host de bind da API (padrao `0.0.0.0`)
+- `API_PORTA`: porta da API (padrao `8080`)
+
+Compatibilidade mantida:
+- `API_MODEL_PATH`
+- `API_HOST`
+- `API_PORT`
+- `PORT`
 
 ## Docker
 
-Build from repository root:
+Build a partir da raiz do repositorio:
 
 ```powershell
 docker build -t conforto-api-local -f src/api/Dockerfile src/api
 docker run -d --name conforto-api -p 8080:8080 conforto-api-local
 ```
 
-## Manual request (PowerShell)
+## Requisicao manual (PowerShell)
 
 ```powershell
-$payload = @{
+$corpo = @{
   idade_anos = 30
   peso_kg = 70.0
   altura_cm = 175
@@ -70,6 +76,6 @@ $payload = @{
   radiacao_solar_media_wm2 = 400.0
 } | ConvertTo-Json
 
-Invoke-RestMethod -Uri http://localhost:8080/predict -Method POST -ContentType "application/json" -Body $payload
+Invoke-RestMethod -Uri http://localhost:8080/predict -Method POST -ContentType "application/json" -Body $corpo
 ```
 

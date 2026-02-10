@@ -1,7 +1,7 @@
 [project]
-name = "thermal-comfort-api"
+name = "api-conforto-termico"
 version = "0.1.0"
-description = "Standalone FastAPI service for thermal comfort prediction"
+description = "Servico FastAPI de predicao de conforto termico"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-thermal-comfort-api = "app:main"
+api-conforto-termico = "aplicacao:principal"
 
 [build-system]
 requires = ["hatchling"]
@@ -21,9 +21,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 include = [
-  "app.py",
-  "contracts.py",
-  "predictor.py",
-  "settings.py",
+  "aplicacao.py",
+  "contratos.py",
+  "preditor.py",
+  "configuracoes.py",
 ]
-
