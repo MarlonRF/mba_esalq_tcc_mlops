@@ -37,6 +37,14 @@ on:
         options:
           - "0"
           - "1"
+      confirmacao_producao:
+        description: "Confirmacao explicita para deploy em production (sim/nao)"
+        required: true
+        default: "nao"
+        type: choice
+        options:
+          - "nao"
+          - "sim"
 
 env:
   PYTHON_VERSION: "3.11"
@@ -105,17 +113,23 @@ jobs:
             echo "COMPAT_LEGADO=${{ github.event.inputs.compat_legado || '1' }}" >> "$GITHUB_ENV"
             echo "MODO_CORTE_LEGADO=${{ github.event.inputs.modo_corte_legado || '0' }}" >> "$GITHUB_ENV"
             echo "MODO_TESTE_SEM_GCP=${{ github.event.inputs.modo_teste_sem_gcp || '0' }}" >> "$GITHUB_ENV"
+            echo "CONFIRMACAO_PRODUCAO=${{ github.event.inputs.confirmacao_producao || 'nao' }}" >> "$GITHUB_ENV"
           else
             echo "AMBIENTE_IMPLANTACAO=staging" >> "$GITHUB_ENV"
             echo "COMPAT_LEGADO=1" >> "$GITHUB_ENV"
             echo "MODO_CORTE_LEGADO=0" >> "$GITHUB_ENV"
             echo "MODO_TESTE_SEM_GCP=0" >> "$GITHUB_ENV"
+            echo "CONFIRMACAO_PRODUCAO=nao" >> "$GITHUB_ENV"
           fi
 
       - name: Bloquear production fora da main
         run: |
           if [ "$AMBIENTE_IMPLANTACAO" = "production" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
             echo "Deploy production bloqueado: rode apenas a partir da branch main. Branch atual: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+          if [ "$AMBIENTE_IMPLANTACAO" = "production" ] && [ "$CONFIRMACAO_PRODUCAO" != "sim" ]; then
+            echo "Deploy production bloqueado: para confirmar, rode o workflow com confirmacao_producao=sim."
             exit 1
           fi
 
