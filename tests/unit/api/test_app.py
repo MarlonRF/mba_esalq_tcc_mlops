@@ -4,7 +4,6 @@ Testes para a API FastAPI de conforto térmico.
 Testa endpoints, validação de dados e integração com o modelo.
 """
 
-import json
 import os
 
 import pytest
@@ -29,7 +28,9 @@ class TestAPIConfortoTermico:
 
         data = response.json()
         assert "mensagem" in data
+        assert "message" in data
         assert data["mensagem"] == "API de Conforto Termico em execucao!"
+        assert data["message"] == data["mensagem"]
 
     @pytest.mark.api
     def test_predicao_dados_validos(self, client):
@@ -49,10 +50,12 @@ class TestAPIConfortoTermico:
 
         data = response.json()
         assert "predicao" in data
+        assert "prediction" in data
 
         # Verifica se predição é uma string válida
         assert isinstance(data["predicao"], str)
         assert len(data["predicao"]) > 0
+        assert data["prediction"] == data["predicao"]
 
     @pytest.mark.api
     def test_predicao_dados_invalidos(self, client):
@@ -86,6 +89,7 @@ class TestAPIConfortoTermico:
 
         data = response.json()
         assert "predicao" in data
+        assert "prediction" in data
 
     @pytest.mark.api
     def test_predicao_tipos_incorretos(self, client):

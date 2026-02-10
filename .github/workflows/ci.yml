@@ -77,13 +77,40 @@ jobs:
           for i in $(seq 1 30); do
             if curl -sf http://localhost:8080/health >/dev/null; then
               echo "API healthy after ${i}s"
-              exit 0
+              break
             fi
             sleep 1
+            if [ "$i" -eq 30 ]; then
+              echo "API health check failed"
+              docker logs conforto-api-test || true
+              exit 1
+            fi
           done
-          echo "API health check failed"
-          docker logs conforto-api-test || true
-          exit 1
+
+      - name: Predict smoke
+        run: |
+          RESPOSTA=$(curl -sf -X POST http://localhost:8080/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+              "idade_anos": 30,
+              "peso_kg": 70.0,
+              "altura_cm": 175,
+              "sexo_biologico": "m",
+              "temperatura_media_c": 25.0,
+              "umidade_relativa_percent": 60.0,
+              "radiacao_solar_media_wm2": 400.0
+            }')
+
+          echo "$RESPOSTA"
+          export RESPOSTA
+          python - <<'PY'
+          import json
+          import os
+
+          dados = json.loads(os.environ["RESPOSTA"])
+          if "predicao" not in dados and "prediction" not in dados:
+              raise SystemExit("Resposta sem campo de predicao")
+          PY
 
       - name: Stop container
         if: always()

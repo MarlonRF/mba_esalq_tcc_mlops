@@ -32,7 +32,7 @@ def criar_aplicacao(preditor: Preditor | None = None) -> FastAPI:
 
     @aplicacao.get("/", response_model=RespostaRaiz)
     def ler_raiz() -> RespostaRaiz:
-        return RespostaRaiz(mensagem="API de Conforto Termico em execucao!")
+        return RespostaRaiz.criar_compativel("API de Conforto Termico em execucao!")
 
     @aplicacao.get("/health", response_model=RespostaSaude)
     def verificar_saude() -> RespostaSaude:
@@ -45,7 +45,7 @@ def criar_aplicacao(preditor: Preditor | None = None) -> FastAPI:
             rotulo = aplicacao.state.preditor.prever_rotulo(quadro_dados)
         except Exception as erro:
             raise HTTPException(status_code=503, detail=f"Modelo indisponivel: {erro}") from erro
-        return SaidaConfortoTermico(predicao=rotulo)
+        return SaidaConfortoTermico.criar_compativel(rotulo)
 
     return aplicacao
 

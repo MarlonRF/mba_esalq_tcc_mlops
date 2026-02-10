@@ -30,9 +30,14 @@ Ela pode ser executada separadamente dos pipelines, consumindo apenas o artefato
 
 ```json
 {
-  "predicao": "Neutro"
+  "predicao": "Neutro",
+  "prediction": "Neutro"
 }
 ```
+
+Compatibilidade temporaria:
+- `predicao`: campo oficial atual
+- `prediction`: campo legado para clientes antigos
 
 ## Execucao local (modo subprojeto)
 
@@ -78,4 +83,3 @@ $corpo = @{
 
 Invoke-RestMethod -Uri http://localhost:8080/predict -Method POST -ContentType "application/json" -Body $corpo
 ```
-
