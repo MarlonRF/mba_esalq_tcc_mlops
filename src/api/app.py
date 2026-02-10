@@ -1,54 +1,62 @@
 # -*- coding: utf-8 -*-
 
-import os
-from typing import Literal
-
 import pandas as pd
 import uvicorn
-from fastapi import FastAPI
-from pycaret.classification import load_model, predict_model
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
 
-# Create the app
-app = FastAPI(title="Thermal Comfort API", version="1.0.0")
-
-# Load trained Pipeline
-model = load_model("api")
-
-
-# Define input/output pydantic models
-class ThermalComfortInput(BaseModel):
-    idade_anos: int
-    peso_kg: float
-    altura_cm: int
-    sexo_biologico: str
-    temperatura_media_c: float
-    umidade_relativa_percent: float
-    radiacao_solar_media_wm2: float
-
-
-class ThermalComfortOutput(BaseModel):
-    prediction: str
+try:
+    from .contracts import (
+        HealthResponse,
+        RootResponse,
+        ThermalComfortInput,
+        ThermalComfortOutput,
+    )
+    from .predictor import Predictor, PyCaretPredictor
+    from .settings import get_api_settings
+except ImportError:
+    # Allow running as a standalone project (python app.py from src/api).
+    from contracts import (  # type: ignore
+        HealthResponse,
+        RootResponse,
+        ThermalComfortInput,
+        ThermalComfortOutput,
+    )
+    from predictor import Predictor, PyCaretPredictor  # type: ignore
+    from settings import get_api_settings  # type: ignore
 
 
-@app.get("/")
-def read_root():
-    return {"message": "Thermal Comfort API is running!"}
+def create_app(predictor: Predictor | None = None) -> FastAPI:
+    settings = get_api_settings()
+    app = FastAPI(title="Thermal Comfort API", version="1.1.0")
+    app.state.predictor = predictor or PyCaretPredictor(settings.model_name)
+
+    @app.get("/", response_model=RootResponse)
+    def read_root() -> RootResponse:
+        return RootResponse(message="Thermal Comfort API is running!")
+
+    @app.get("/health", response_model=HealthResponse)
+    def health_check() -> HealthResponse:
+        return HealthResponse(status="healthy")
+
+    @app.post("/predict", response_model=ThermalComfortOutput)
+    def predict(data: ThermalComfortInput) -> ThermalComfortOutput:
+        frame = pd.DataFrame([data.model_dump()])
+        try:
+            label = app.state.predictor.predict_label(frame)
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=f"Model unavailable: {exc}") from exc
+        return ThermalComfortOutput(prediction=label)
+
+    return app
 
 
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+app = create_app()
 
 
-# Define predict function
-@app.post("/predict", response_model=ThermalComfortOutput)
-def predict(data: ThermalComfortInput):
-    data = pd.DataFrame([data.model_dump()])
-    predictions = predict_model(model, data=data)
-    return {"prediction": predictions["prediction_label"].iloc[0]}
+def main() -> None:
+    settings = get_api_settings()
+    uvicorn.run(app, host=settings.host, port=settings.port)
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    main()
