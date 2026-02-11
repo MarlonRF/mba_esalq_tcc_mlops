@@ -179,10 +179,14 @@ Secrets necessarios no GitHub:
 
 Documentos principais em `docs/`:
 - `docs/clearml-configuracao.md`
-- `docs/api-guia.md`
-- `docs/deploy-gcp-setup.md`
-- `docs/mlops-setup.md`
+- `docs/guia-api.md`
+- `docs/configuracao-implantacao-gcp.md`
+- `docs/configuracao-mlops.md`
 - `docs/estrutura-cicd.md`
+- indice da documentacao ativa: `docs/README.md`
+
+Documentacao historica e de apoio foi movida para `docs/arquivados/`.
+Indice dos documentos arquivados: `docs/arquivados/README.md`.
 
 ## Licenca
 
