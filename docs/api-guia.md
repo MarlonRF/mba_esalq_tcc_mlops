@@ -1,266 +1,112 @@
-# API de Classificação de Conforto Térmico 🌡️
+# API de Conforto Termico
 
-Esta API utiliza machine learning para classificar o conforto térmico de uma pessoa com base em características pessoais e condições ambientais.
+Guia padronizado da API FastAPI em `src/api`, tratada como subprojeto independente dentro do monorepo.
 
-## 🏗️ Arquitetura da Solução
+## Visao geral
 
-```mermaid
-graph TD
-    A[Cliente] --> B[API FastAPI]
-    B --> C[Modelo PyCaret]
-    C --> D[Predição]
-    D --> B
-    B --> A
-    
-    subgraph "Dados de Entrada"
-        E[Idade]
-        F[Peso]
-        G[Altura]
-        H[Sexo Biológico]
-        I[Temperatura Média]
-        J[Umidade Relativa]
-        K[Radiação Solar]
-    end
-    
-    E --> B
-    F --> B
-    G --> B
-    H --> B
-    I --> B
-    J --> B
-    K --> B
-```
+- Codigo da API: `src/api`
+- App principal: `src/api/aplicacao.py`
+- Contratos (entrada/saida): `src/api/contratos.py`
+- Configuracoes: `src/api/configuracoes.py`
+- Preditor: `src/api/preditor.py`
 
-## 📊 Fluxo de Predição
-
-```mermaid
-sequenceDiagram
-    participant Cliente
-    participant API
-    participant Modelo
-    
-    Cliente->>API: POST /predict (dados pessoais + ambientais)
-    API->>API: Validação dos dados (Pydantic)
-    API->>API: Conversão para DataFrame
-    API->>Modelo: predict_model(dados)
-    Modelo-->>API: Resultado da classificação
-    API-->>Cliente: {"prediction": "classificação"}
-```
-
-## 🚀 Como Implementar
-
-### Pré-requisitos
-
-- Docker instalado
-- Google Cloud CLI (gcloud) configurado
-- Conta no Google Cloud Platform
-
-### 1. Build Local
+## Execucao local
 
 ```bash
-# Navegar para a pasta da API
-cd api
-
-# Construir a imagem Docker
-docker build -t conforto-api:conforto-termico .
-
-# Testar localmente
-docker run -p 8080:8080 conforto-api:conforto-termico
+cd src/api
+uv sync
+uv run uvicorn aplicacao:aplicacao --host 0.0.0.0 --port 8080
 ```
 
-### 2. Deploy no Google Cloud Run
+Swagger local:
+- `http://localhost:8080/docs`
+
+## Docker
+
+Build na raiz do repositorio:
 
 ```bash
-# Fazer tag da imagem para Google Container Registry
-docker tag conforto-api:conforto-termico gcr.io/SEU-PROJECT-ID/conforto-api:latest
-
-# Push para o registry
-docker push gcr.io/SEU-PROJECT-ID/conforto-api:latest
-
-# Deploy no Cloud Run
-gcloud run deploy conforto-termico-api \
-    --image gcr.io/SEU-PROJECT-ID/conforto-api:latest \
-    --platform managed \
-    --region us-central1 \
-    --allow-unauthenticated \
-    --port 8080
+docker build -t conforto-api-local -f src/api/Dockerfile src/api
+docker run --rm -p 8080:8080 conforto-api-local
 ```
 
-## 📋 Endpoints da API
+## Endpoints
 
-### `GET /`
-Endpoint de verificação básica da API.
+- `GET /`
+- `GET /health`
+- `POST /predict`
 
-**Resposta:**
+### Exemplo de entrada (`POST /predict`)
+
 ```json
 {
-    "message": "Thermal Comfort API is running!"
+  "idade_anos": 30,
+  "peso_kg": 70.0,
+  "altura_cm": 175,
+  "sexo_biologico": "m",
+  "temperatura_media_c": 25.0,
+  "umidade_relativa_percent": 60.0,
+  "radiacao_solar_media_wm2": 400.0
 }
 ```
 
-### `GET /health`
-Endpoint de verificação de saúde da aplicação.
+### Exemplo de saida (modo compativel)
 
-**Resposta:**
 ```json
 {
-    "status": "healthy"
+  "predicao": "Neutro",
+  "prediction": "Neutro"
 }
 ```
 
-### `POST /predict`
-Endpoint principal para classificação de conforto térmico.
+## Compatibilidade de contrato
 
-**Body da Requisição:**
-```json
-{
-    "idade_anos": 28,
-    "peso_kg": 75.0,
-    "altura_cm": 167,
-    "sexo_biologico": "f",
-    "temperatura_media_c": 29.8,
-    "umidade_relativa_percent": 35.13,
-    "radiacao_solar_media_wm2": 48.51
-}
-```
+Campos oficiais:
+- `predicao` (POST `/predict`)
+- `mensagem` (GET `/`)
 
-**Resposta:**
-```json
-{
-    "prediction": "Quente"
-}
-```
+Campos legados (temporarios):
+- `prediction`
+- `message`
 
-## 🧪 Testando a API
+Cabecalhos de transicao:
+- `X-Compatibilidade-Legado` (`ativa`/`inativa`)
+- `X-Modo-Corte-Legado` (`ativo`/`inativo`)
+- `X-Data-Limite-Legado`
 
-### Teste Local
+## Variaveis de ambiente
 
-```bash
-# Testar endpoint raiz
-curl http://localhost:8080/
+- `API_CAMINHO_MODELO`
+- `API_ENDERECO_HOST` (padrao `0.0.0.0`)
+- `API_PORTA` (padrao `8080`)
+- `API_COMPAT_LEGADO_ATIVA` (`1`/`0`)
+- `API_MODO_CORTE_LEGADO` (`1`/`0`)
+- `API_DATA_LIMITE_LEGADO`
 
-# Testar endpoint de saúde
-curl http://localhost:8080/health
+Compatibilidade mantida:
+- `API_MODEL_PATH`
+- `API_HOST`
+- `API_PORT`
+- `PORT`
 
-# Testar predição
-curl -X POST "http://localhost:8080/predict" \
-    -H "Content-Type: application/json" \
-    -d '{
-        "idade_anos": 28,
-        "peso_kg": 75.0,
-        "altura_cm": 167,
-        "sexo_biologico": "f",
-        "temperatura_media_c": 29.8,
-        "umidade_relativa_percent": 35.13,
-        "radiacao_solar_media_wm2": 48.51
-    }'
-```
+## Producao
 
-### Teste no Cloud Run (PowerShell)
+- URL API: `https://conforto-termico-api-xyuomeiaiq-uc.a.run.app`
+- Swagger: `https://conforto-termico-api-xyuomeiaiq-uc.a.run.app/docs`
 
-```powershell
-# Testar predição no Cloud Run
-Invoke-RestMethod -Uri "https://SEU-URL.run.app/predict" `
-    -Method POST `
-    -ContentType "application/json" `
-    -Body '{
-        "idade_anos": 28,
-        "peso_kg": 75.0,
-        "altura_cm": 167,
-        "sexo_biologico": "f",
-        "temperatura_media_c": 29.8,
-        "umidade_relativa_percent": 35.13,
-        "radiacao_solar_media_wm2": 48.51
-    }'
-```
+## Troubleshooting rapido
 
-## 🔧 Estrutura do Projeto
+### API sobe, mas modelo nao carrega
 
-```
-api/
-├── Dockerfile          # Configuração do container
-├── app.py              # Aplicação FastAPI principal
-├── requirements.txt    # Dependências Python
-├── api.pkl            # Modelo treinado do PyCaret
-└── README.md          # Este arquivo
-```
+- confirme caminho de modelo em `API_CAMINHO_MODELO`;
+- confirme arquivo de modelo no container/imagem.
 
-## 📊 Modelo de Dados
+### Erro 422 no `/predict`
 
-### Entrada (ThermalComfortInput)
+- confira nomes e tipos dos campos no JSON;
+- valide payload pelo Swagger em `/docs`.
 
-| Campo | Tipo | Descrição | Exemplo |
-|-------|------|-----------|---------|
-| `idade_anos` | int | Idade em anos | 28 |
-| `peso_kg` | float | Peso em quilogramas | 75.0 |
-| `altura_cm` | int | Altura em centímetros | 167 |
-| `sexo_biologico` | str | 'm' ou 'f' | 'f' |
-| `temperatura_media_c` | float | Temperatura média em Celsius | 29.8 |
-| `umidade_relativa_percent` | float | Umidade relativa em % | 35.13 |
-| `radiacao_solar_media_wm2` | float | Radiação solar média em W/m² | 48.51 |
+### Erro 403 em Cloud Run
 
-### Saída (ThermalComfortOutput)
-
-| Campo | Tipo | Descrição | Possíveis Valores |
-|-------|------|-----------|------------------|
-| `prediction` | str | Classificação do conforto térmico | Quente, Frio, Confortável |
-
-## 🛠️ Tecnologias Utilizadas
-
-```mermaid
-graph LR
-    A[FastAPI] --> B[Uvicorn]
-    C[PyCaret] --> D[Scikit-learn]
-    E[Pydantic] --> F[Validação de Dados]
-    G[Pandas] --> H[Manipulação de Dados]
-    I[Docker] --> J[Containerização]
-    K[Google Cloud Run] --> L[Deploy]
-```
-
-## ⚙️ Configurações do Dockerfile
-
-- **Base Image:** `python:3.11-slim`
-- **Porta:** 8080 (padrão do Cloud Run)
-- **Servidor:** Uvicorn
-- **Dependências de Sistema:** build-essential, gcc, g++, libgomp1
-
-## 🔍 Troubleshooting
-
-### Problema: Container não inicia no Cloud Run
-**Solução:** Verificar se a porta 8080 está configurada corretamente
-
-### Problema: Modelo não carrega
-**Solução:** Certificar-se de que o arquivo `api.pkl` está presente
-
-### Problema: Erro de dependências
-**Solução:** Verificar se todas as dependências do `requirements.txt` estão corretas
-
-## 📝 Logs e Monitoramento
-
-Para visualizar logs no Cloud Run:
-
-```bash
-# Visualizar logs em tempo real
-gcloud run logs tail conforto-termico-api --region=us-central1
-
-# Visualizar logs específicos
-gcloud run logs read conforto-termico-api --region=us-central1 --limit=50
-```
-
-## 🔒 Segurança
-
-A API está configurada com `--allow-unauthenticated` para facilitar o uso. Para produção, considere:
-
-- Implementar autenticação JWT
-- Configurar CORS adequadamente
-- Usar HTTPS sempre
-- Implementar rate limiting
-
-## 📈 Melhorias Futuras
-
-- [ ] Implementar cache de predições
-- [ ] Adicionar métricas de performance
-- [ ] Implementar versionamento da API
-- [ ] Adicionar documentação interativa (Swagger UI)
-- [ ] Implementar batch predictions
-- [ ] Adicionar testes automatizados
+- revise politica de invoker no servico;
+- valide permissao publica quando `--allow-unauthenticated` for esperado.

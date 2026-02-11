@@ -1,60 +1,78 @@
-# Estrutura de diretórios recomendada para CI/CD
+# Estrutura CI/CD (Atual)
 
-/.github/
-  /workflows/
-    ml-pipeline.yml          # Pipeline principal CI/CD
-    data-validation.yml      # Validação de dados
-    model-monitoring.yml     # Monitoramento de modelo
+Este documento padroniza a estrutura de CI/CD usada no repositorio.
 
-/api/
-  app.py                     # API FastAPI principal
-  requirements.txt           # Dependências da API
-  Dockerfile                 # Container da API
-  /models/                   # Modelos versionados
-  /schemas/                  # Schemas Pydantic
-  /tests/                    # Testes da API
+## Workflows
 
-/configs/
-  processing_config.yaml     # Configuração de processamento
-  training_config.yaml       # Configuração de treinamento
-  deployment_config.yaml     # Configuração de deploy
-  monitoring_config.yaml     # Configuração de monitoramento
+### CI
 
-/data/
-  /raw/                      # Dados brutos (não versionados)
-  /processed/                # Dados processados (não versionados)
-  /external/                 # Dados externos
-  schemas.json               # Schemas de dados
+Arquivo: `.github/workflows/ci.yml`
 
-/scripts/
-  data_validation.py         # Validação de dados
-  model_validation.py        # Validação de modelos
-  deploy.py                  # Script de deploy
-  monitoring.py              # Script de monitoramento
+Responsabilidades:
+- instalar dependencias com `uv`;
+- validar qualidade minima (compilacao/build);
+- executar testes criticos sem ClearML;
+- executar smoke da API em multiplos modos de contrato;
+- publicar relatorios de execucao.
 
-/tests/
-  /unit/                     # Testes unitários
-  /integration/              # Testes de integração
-  /e2e/                      # Testes end-to-end
-  conftest.py                # Configuração pytest
-  
-/infrastructure/
-  /terraform/                # Infraestrutura como código
-  /kubernetes/               # Manifests K8s (se usar)
-  /monitoring/               # Configurações de monitoramento
+### CD
 
-/docs/
-  api.md                     # Documentação da API
-  pipeline.md                # Documentação do pipeline
-  deployment.md              # Guia de deployment
+Arquivo: `.github/workflows/deploy.yml`
 
-# Arquivos de configuração na raiz
-requirements.txt             # Dependências do projeto
-requirements-dev.txt         # Dependências de desenvolvimento
-setup.py                     # Setup do package
-pyproject.toml              # Configuração do projeto
-.env.example                # Exemplo de variáveis de ambiente
-.gitignore                  # Arquivos ignorados pelo Git
-.clearml.conf.example       # Exemplo de configuração ClearML
-Makefile                    # Comandos úteis
-docker-compose.yml          # Para desenvolvimento local
+Responsabilidades:
+- executar pre-checks antes de deploy;
+- build/push da imagem;
+- deploy no Cloud Run;
+- health check e smoke de contrato pos-deploy.
+
+## Estrutura recomendada de diretorios
+
+```text
+.
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── deploy.yml
+├── config/
+├── docs/
+├── relatorios/
+├── src/
+│   ├── api/
+│   ├── integracao_clearml/
+│   ├── pipelines/
+│   ├── processamento/
+│   ├── treinamento/
+│   ├── features/
+│   └── utils/
+└── tests/
+```
+
+## Artefatos e saidas
+
+- Relatorios de teste: `relatorios/`
+- Cobertura: `relatorios/coverage.xml`
+- Artefatos de smoke API: upload no CI
+
+## Variaveis e secrets
+
+Secrets GitHub (deploy real):
+- `GCP_PROJECT_ID`
+- `GCP_CREDENTIALS`
+
+Flags importantes no deploy:
+- `compat_legado`
+- `modo_corte_legado`
+- `modo_teste_sem_gcp`
+- `confirmacao_producao`
+
+## Politica de deploy
+
+- staging via push em `main`;
+- production via `workflow_dispatch`;
+- production bloqueada fora de `main` e sem confirmacao explicita.
+
+## Validacao minima apos deploy
+
+- `GET /health` com status `200`
+- `POST /predict` com status `200`
+- cabecalhos de transicao de contrato presentes

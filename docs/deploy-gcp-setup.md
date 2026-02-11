@@ -1,127 +1,101 @@
-# 🚀 Configuração de Deploy no Google Cloud Platform
+# Setup de Deploy GCP (Cloud Run)
 
-## 📋 **Pré-requisitos**
+Este guia padroniza a configuracao para o workflow `deploy.yml`.
 
-Para habilitar o deploy automático no Google Cloud Run, você precisa configurar:
+## Objetivo
 
-### 1. **Projeto no Google Cloud Platform**
-- Crie um projeto no [Google Cloud Console](https://console.cloud.google.com/)
-- Anote o **Project ID** (ex: `meu-projeto-123456`)
-- Habilite as APIs necessárias:
-  - Cloud Run API
-  - Container Registry API
-  - Cloud Build API
+Permitir deploy de staging e production pelo GitHub Actions, com:
+- pre-checks de teste;
+- build/push de imagem;
+- health check e smoke de contrato.
 
-### 2. **Service Account (Conta de Serviço)**
-- Acesse IAM & Admin > Service Accounts
-- Crie uma nova service account com as permissões:
-  - `Cloud Run Admin`
-  - `Storage Admin`
-  - `Cloud Build Editor`
-- Baixe a chave JSON da service account
+## Pre-requisitos
 
-## 🔧 **Configuração dos Secrets no GitHub**
+- Projeto GCP ativo
+- APIs habilitadas (Cloud Run, Artifact Registry/Container Registry, Cloud Build)
+- Service Account para deploy
 
-### Passo 1: Acessar Configurações do Repositório
-1. Vá para o seu repositório no GitHub
-2. Clique em **Settings** (Configurações)
-3. No menu lateral, clique em **Secrets and variables** > **Actions**
+## Permissoes recomendadas para a Service Account de deploy
 
-### Passo 2: Adicionar os Secrets
-Clique em **New repository secret** para cada um:
+No projeto GCP:
+- `roles/run.admin`
+- `roles/iam.serviceAccountUser`
+- `roles/artifactregistry.writer` (ou permissoes equivalentes no registry usado)
+- `roles/storage.objectAdmin` (se necessario no fluxo atual)
 
-#### **Secret 1: GCP_CREDENTIALS**
-- **Nome**: `GCP_CREDENTIALS`
-- **Valor**: Cole todo o conteúdo do arquivo JSON da service account
-```json
-{
-  "type": "service_account",
-  "project_id": "seu-projeto-id",
-  "private_key_id": "...",
-  "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n",
-  "client_email": "nome@seu-projeto.iam.gserviceaccount.com",
-  ...
-}
-```
+## Secrets no GitHub
 
-#### **Secret 2: GCP_PROJECT_ID**
-- **Nome**: `GCP_PROJECT_ID`
-- **Valor**: ID do seu projeto (ex: `meu-projeto-123456`)
+No repositorio, configure:
+- `GCP_PROJECT_ID`
+- `GCP_CREDENTIALS` (JSON da chave da service account)
 
-## 🧪 **Testando a Configuração**
+## Workflows e modos
 
-Após configurar os secrets:
+Arquivo:
+- `.github/workflows/deploy.yml`
 
-1. **Fazer um push** para a branch `main` ou `test-clearml-script`
-2. **Verificar execução** no GitHub Actions
-3. **Acompanhar logs** do job `deploy`
+Entradas de `workflow_dispatch`:
+- `environment`: `staging` ou `production`
+- `compat_legado`: `1`/`0`
+- `modo_corte_legado`: `1`/`0`
+- `modo_teste_sem_gcp`: `1`/`0`
+- `confirmacao_producao`: `sim`/`nao`
 
-### 📋 **Checklist de Verificação**
-- [ ] Projeto GCP criado
-- [ ] APIs habilitadas (Cloud Run, Container Registry, Cloud Build)
-- [ ] Service Account criada com permissões corretas
-- [ ] Chave JSON baixada
-- [ ] Secret `GCP_CREDENTIALS` configurado
-- [ ] Secret `GCP_PROJECT_ID` configurado
+## Regras atuais de seguranca no deploy
 
-## 🐳 **Estrutura do Deploy**
+- Push em `main` dispara deploy de staging.
+- Deploy de production e manual (`workflow_dispatch`).
+- Production so permite execucao quando:
+  - branch de execucao e `main`;
+  - `confirmacao_producao=sim`.
 
-O workflow fará automaticamente:
+## Teste rapido
 
-1. **Setup**: Instala dependências e gera modelo
-2. **Build**: Constrói imagem Docker da API
-3. **Push**: Envia para Google Container Registry
-4. **Deploy**: Implanta no Cloud Run com configurações:
-   - **Região**: us-central1
-   - **Memória**: 512Mi
-   - **CPU**: 1
-   - **Instâncias**: 0-5 (auto-scaling)
-   - **Porta**: 8080
-   - **Acesso**: Público (não autenticado)
+### 1. Teste sem GCP (pipeline de CD)
 
-## 🌐 **Após o Deploy**
+Use:
+- `modo_teste_sem_gcp=1`
 
-A API estará disponível em uma URL como:
-```
-https://conforto-termico-api-[hash]-uc.a.run.app
-```
+Resultado esperado:
+- valida pipeline de deploy local (build + health + predict) sem autenticar no GCP.
 
-### Endpoints disponíveis:
-- **GET /**: Health check
-- **POST /predict**: Predição de conforto térmico
+### 2. Teste real em staging
 
-### Exemplo de uso:
-```bash
-curl -X POST https://sua-url.run.app/predict \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "idade_anos": 30,
-    "peso_kg": 70.0,
-    "altura_cm": 175,
-    "sexo_biologico": "m",
-    "temperatura_media_c": 25.0,
-    "umidade_relativa_percent": 60.0,
-    "radiacao_solar_media_wm2": 400.0
-  }'
-```
+Use:
+- `environment=staging`
+- `modo_teste_sem_gcp=0`
 
-## ⚠️ **Importante**
+Resultado esperado:
+- deploy no servico `conforto-termico-api-staging`
+- health check e smoke de contrato com sucesso.
 
-- Os secrets são **sensíveis** - nunca os compartilhe
-- O deploy só executa se **todos os testes passarem**
-- Custos do GCP são de **sua responsabilidade**
-- Configure **alertas de billing** no GCP
+### 3. Teste real em production
 
-## 🔍 **Troubleshooting**
+Use:
+- `environment=production`
+- `confirmacao_producao=sim`
+- `modo_teste_sem_gcp=0`
 
-### Deploy falha com "Permission denied"
-- Verifique se a service account tem as permissões corretas
-- Confirme se os secrets estão configurados corretamente
+## Verificacoes pos-deploy
 
-### Build falha
-- Verifique se as APIs do GCP estão habilitadas
-- Confirme se o projeto GCP está ativo
+- `GET /health` retorna `200`
+- `POST /predict` retorna `200`
+- cabecalhos de compatibilidade presentes
 
-### API não responde
-- Verifique logs no Cloud Run Console
-- Confirme se o modelo foi gerado corretamente
+## Problemas comuns
+
+### Falha em autenticacao GCP
+
+- conferir secret `GCP_CREDENTIALS`
+- conferir formato JSON valido
+- conferir role da service account
+
+### Health check falha com 403
+
+- revisar IAM de invoker no servico Cloud Run;
+- confirmar comportamento esperado de acesso publico.
+
+### Build/push falha
+
+- revisar permissoes de registry;
+- revisar projeto GCP no secret `GCP_PROJECT_ID`.
