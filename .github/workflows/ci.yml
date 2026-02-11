@@ -1,4 +1,4 @@
-name: CI - Critical Tests
+name: CI - Testes
 
 on:
   push:
